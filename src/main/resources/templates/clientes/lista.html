@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lista de Clientes</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Íconos de Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
+    <style>
+        /* Estilos generales */
+        body {
+            background-color: #f8f9fa;
+        }
+        .container-custom {
+            max-width: 800px;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Incluir menú -->
+<div th:replace="~{fragments/menu.html}"></div>
+
+<!-- Contenido principal centrado -->
+<main class="d-flex justify-content-center mt-4">
+    <div class="container-custom w-100">
+        <h3 class="text-center mb-4">Lista de Clientes</h3>
+
+        <!-- Mensaje de éxito -->
+        <div th:if="${param.success}" class="alert alert-success text-center">
+            ¡Cliente registrado con éxito!
+        </div>
+
+        <div class="mb-3 text-center">
+            <a href="/clientes/nuevo" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Agregar Cliente
+            </a>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger text-center">
+            <span th:text="${error}"></span>
+        </div>
+
+        <!-- Formulario de búsqueda -->
+        <form th:action="@{/clientes/buscar}" method="get" class="mb-3 d-flex justify-content-center">
+            <input type="text" name="nombre" th:value="${nombreBuscado}" class="form-control w-50" placeholder="Buscar por nombre o apellido">
+            <button type="submit" class="btn btn-primary ms-2">
+                <i class="bi bi-search"></i> Buscar
+            </button>
+        </form>
+
+
+        <!-- Mostrar mensaje si no hay clientes después de la búsqueda -->
+        <div th:if="${clientes.isEmpty() and nombreBuscado != null}" class="alert alert-warning text-center">
+            <i class="bi bi-exclamation-triangle"></i> No se encontraron clientes con el nombre "<span th:text="${nombreBuscado}"></span>".
+        </div>
+
+        <!-- Tabla de clientes -->
+        <table class="table table-bordered table-hover" th:if="${not clientes.isEmpty()}">
+            <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Dirección</th>
+                <th>Teléfono</th>
+                <th>estado</th>
+                <th>Activar/Inactivar</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="cliente : ${clientes}">
+                <td th:text="${cliente.id}"></td>
+                <td th:text="${cliente.nombre}"></td>
+                <td th:text="${cliente.apellido}"></td>
+                <td th:text="${cliente.direccion}"></td>
+                <td th:text="${cliente.telefono}"></td>
+                <td>
+                    <span th:class="${cliente.estado == 'ACTIVO' ? 'badge bg-success' : 'badge bg-danger'}"
+                          th:text="${cliente.estado == 'ACTIVO' ? 'ACTIVO' : 'INACTIVO'}"></span>
+                </td>
+
+                <td>
+                    <form th:action="@{clientes/cambiar-estado/{id}(id=${cliente.id})}" method="post">
+                        <button type="submit" class="btn btn-warning btn-sm">
+                            <i class="bi bi-toggle-on" th:if="${cliente.estado == 'ACTIVO'}"></i>
+                            <i class="bi bi-toggle-off" th:if="${cliente.estado == 'INACTIVO'}"></i>
+                            <span th:text="${cliente.estado == 'ACTIVO' ? 'Desactivar' : 'Activar'}"></span>
+                        </button>
+                    </form>
+                </td>
+                <td>
+                    <a th:href="@{/clientes/editar/{id}(id=${cliente.id})}" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-pencil-square"></i> Editar
+                    </a>
+                    <a th:href="@{/clientes/eliminar/{id}(id=${cliente.id})}" class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+</body>
+</html>
