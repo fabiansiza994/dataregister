@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi Perfil</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Iconos -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #e0eafc, #cfdef3);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .profile-card {
+      background: white;
+      border-radius: 15px;
+      padding: 2rem 2.5rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+      max-width: 650px;
+      margin: 80px auto;
+      animation: fadeIn 0.6s ease;
+    }
+
+    .profile-icon {
+      font-size: 4rem;
+      color: #0d6efd;
+    }
+
+    .profile-info {
+      border-top: 1px solid #dee2e6;
+      padding-top: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .info-row i {
+      color: #0d6efd;
+      font-size: 1.2rem;
+      width: 30px;
+    }
+
+    .info-row span.label {
+      font-weight: 600;
+      color: #6c757d;
+      width: 120px;
+    }
+
+    .info-row span.value {
+      font-size: 1.05rem;
+      flex: 1;
+    }
+
+    @keyframes fadeIn {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Menú -->
+<div th:replace="~{fragments/menu.html}"></div>
+
+<!-- Card perfil -->
+<div class="profile-card text-center">
+  <i class="bi bi-person-circle profile-icon mb-2"></i>
+  <h3 class="mb-2">Mi Perfil</h3>
+  <p class="text-muted">Información de tu cuenta personal</p>
+
+  <div class="profile-info text-start">
+    <div class="info-row">
+      <i class="bi bi-person-fill"></i>
+      <span class="label">Nombre:</span>
+      <span class="value" th:text="${usuario.nombre}">Nombre</span>
+    </div>
+    <div class="info-row">
+      <i class="bi bi-person-vcard"></i>
+      <span class="label">Apellido:</span>
+      <span class="value" th:text="${usuario.apellido}">Apellido</span>
+    </div>
+    <div class="info-row">
+      <i class="bi bi-envelope"></i>
+      <span class="label">Correo:</span>
+      <span class="value" th:text="${usuario.email}">correo@ejemplo.com</span>
+    </div>
+    <div class="info-row">
+      <i class="bi bi-person-badge"></i>
+      <span class="label">Usuario:</span>
+      <span class="value" th:text="${usuario.usuario}">usuario</span>
+    </div>
+    <div class="info-row">
+      <i class="bi bi-shield-lock"></i>
+      <span class="label">Rol:</span>
+      <span class="value" th:text="${usuario.rol.nombre}">ROL</span>
+    </div>
+    <div class="info-row">
+      <i class="bi bi-building"></i>
+      <span class="label">Empresa:</span>
+      <span class="value" th:text="${usuario.grupo.empresa.nombre}">Empresa</span>
+    </div>
+  </div>
+
+  <div class="mt-4 d-flex justify-content-center gap-3">
+    <a th:href="@{/perfil/editar}" class="btn btn-primary">
+      <i class="bi bi-pencil-square"></i> Editar Perfil
+    </a>
+    <a href="/" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+  </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Mostrar alerta si hay éxito -->
+<script th:if="${param.success}" th:inline="javascript">
+  Swal.fire({
+    icon: 'success',
+    title: 'Perfil actualizado',
+    text: 'Tus cambios han sido guardados exitosamente.',
+    confirmButtonColor: '#0d6efd'
+  });
+</script>
+
+</body>
+</html>

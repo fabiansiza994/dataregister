@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Editar Perfil</title>
+
+    <!-- Bootstrap + Iconos -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #e0eafc, #cfdef3);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .form-card {
+            background: white;
+            padding: 2rem 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            max-width: 650px;
+            margin: 80px auto;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .form-control:disabled {
+            background-color: #f1f1f1;
+            font-weight: 500;
+        }
+
+        .btn {
+            min-width: 150px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Menú -->
+<div th:replace="~{fragments/menu.html}"></div>
+
+<!-- Contenedor -->
+<div class="form-card">
+    <h4 class="mb-4 text-center text-primary"><i class="bi bi-pencil-square me-2"></i> Editar Perfil</h4>
+
+    <div th:if="${errorCorreo}" class="alert alert-danger text-center">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+        <span th:text="${errorCorreo}">Correo en uso</span>
+    </div>
+
+    <form th:action="@{/perfil/actualizar}" th:object="${usuario}" method="post">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-control" th:field="*{nombre}" placeholder="Tu nombre" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Apellido</label>
+                <input type="text" class="form-control" th:field="*{apellido}" placeholder="Tu apellido" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Correo Electrónico</label>
+            <input type="email" class="form-control" th:field="*{email}" placeholder="ejemplo@correo.com" required>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Usuario</label>
+                <input type="text" class="form-control" th:value="${usuario.usuario}" disabled>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Rol</label>
+                <input type="text" class="form-control" th:value="${usuario.rol.nombre}" disabled>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Empresa</label>
+                <input type="text" class="form-control" th:value="${usuario.grupo.empresa.nombre}" disabled>
+            </div>
+        </div>
+
+        <div class="text-center mt-4 d-flex justify-content-center gap-3">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i> Guardar Cambios
+            </button>
+            <a href="/perfil" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

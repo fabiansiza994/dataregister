@@ -80,7 +80,7 @@ public class TrabajoController {
         boolean hayClientesEnGrupo = clienteRepository.existsByUsuario_Grupo(usuario.getGrupo());
 
         if (!hayClientesEnEmpresa || !hayClientesEnGrupo) {
-            return "redirect:/clientes/nuevo?error=Debe crear al menos un cliente en la empresa y el grupo antes de registrar trabajos.";
+            return "redirect:/clientes/nuevo?error=Debe crear al menos un cliente antes de registrar trabajos.";
         }
 
         List<Cliente> clientes;

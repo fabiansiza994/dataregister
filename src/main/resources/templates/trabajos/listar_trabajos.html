@@ -11,11 +11,11 @@
 
     <!-- Íconos de Bootstrap -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        /* Estilos generales */
         body {
             background-color: #f8f9fa;
         }
@@ -34,7 +34,7 @@
 <div th:replace="~{fragments/menu.html}"></div>
 
 <!-- Contenido principal centrado -->
-<main class="d-flex justify-content-center mt-4">
+<main class="d-flex justify-content-center mt-4 px-2">
     <div class="container-custom w-100">
         <h3 class="text-center mb-4">Lista de Trabajos Realizados</h3>
 
@@ -43,50 +43,56 @@
             ¡Trabajo registrado con éxito!
         </div>
 
+        <!-- Botón de agregar trabajo -->
         <div class="mb-3 text-center">
             <a href="/trabajos/registro" class="btn btn-primary">
                 <i class="bi bi-clipboard-plus"></i> Agregar Trabajo
             </a>
         </div>
 
-        <!-- Mostrar mensaje si no hay trabajos -->
+        <!-- Mensaje si no hay trabajos -->
         <div th:if="${trabajos.isEmpty()}" class="alert alert-warning text-center">
             <i class="bi bi-exclamation-triangle"></i> Aún no hay trabajos registrados.
         </div>
 
-        <!-- Tabla de trabajos -->
-        <table class="table table-striped table-hover" th:if="${not trabajos.isEmpty()}">
-            <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Fecha</th>
-                <th>Cliente</th>
-                <th>Valor Total</th>
-                <th>Realizado por</th>
-                <th>Acciones</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="trabajo : ${trabajos}">
-                <td th:text="${trabajo.id}"></td>
-                <td th:text="${trabajo.fecha}"></td>
-                <td th:text="${trabajo.cliente.nombre}"></td>
-                <td th:text="${trabajo.valorTotal}"></td>
-                <td th:text="${trabajo.usuario.usuario}"></td> <!-- Nombre de usuario -->
-                <td>
-                    <a th:href="@{/trabajos/detalle/{id}(id=${trabajo.id})}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-eye"></i> Ver Detalle
-                    </a>
-                    <button class="btn btn-danger btn-sm" th:attr="data-id=${trabajo.id}" onclick="confirmarEliminar(this)">
-                        <i class="bi bi-trash"></i> Eliminar
-                    </button>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <!-- Tabla de trabajos responsiva -->
+        <div class="table-responsive" th:if="${not trabajos.isEmpty()}">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark text-center">
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th class="d-none d-sm-table-cell">Valor Total</th>
+                    <th class="d-none d-sm-table-cell">Realizado por</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="trabajo : ${trabajos}" class="text-center">
+                    <td th:text="${trabajo.id}"></td>
+                    <td th:text="${trabajo.fecha}"></td>
+                    <td th:text="${trabajo.cliente.nombre}"></td>
+                    <td class="d-none d-sm-table-cell" th:text="${trabajo.valorTotal}"></td>
+                    <td class="d-none d-sm-table-cell" th:text="${trabajo.usuario.usuario}"></td>
+                    <td>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <a th:href="@{/trabajos/detalle/{id}(id=${trabajo.id})}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <button class="btn btn-danger btn-sm" th:attr="data-id=${trabajo.id}" onclick="confirmarEliminar(this)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
 
     </div>
 </main>
+
 <script>
     function confirmarEliminar(button) {
         let id = button.getAttribute("data-id");
@@ -135,7 +141,6 @@
         });
     }
 </script>
-
 
 </body>
 </html>

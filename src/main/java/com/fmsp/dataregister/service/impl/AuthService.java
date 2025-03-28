@@ -51,7 +51,7 @@ public class AuthService implements IAuthService {
             return "home"; // Se redirige a la vista `home.html`
         } else {
             model.addAttribute("error", "Usuario o contraseña incorrectos");
-            return "login";
+            return "auth/login";
         }
     }
 

@@ -92,6 +92,17 @@
         </form>
     </div>
 </main>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- Mostrar alerta si viene con error -->
+<script th:if="${param.error}" th:inline="javascript">
+    Swal.fire({
+        icon: 'info',
+        title: 'Información necesaria',
+        text: [[${param.error}]],
+        confirmButtonColor: '#0d6efd'
+    });
+</script>
 </body>
 </html>
