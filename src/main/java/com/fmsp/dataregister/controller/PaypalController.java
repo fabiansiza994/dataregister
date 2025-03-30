@@ -50,7 +50,8 @@ public class PaypalController {
         try {
             String cancelUrl = loadDataConfig.getCancelUrl();
             String successUrl = loadDataConfig.getSuccessUrl();
-            Payment payment = paypalService.createPayment(10.0, "USD","paypal",
+            Payment payment = paypalService.createPayment(Double.valueOf(loadDataConfig.paypalValue),
+                    loadDataConfig.paypalCurrency, "paypal",
                     "sale", "Payment description", cancelUrl, successUrl);
             for(Links link : payment.getLinks()) {
                 if(link.getRel().equals("approval_url")) {
@@ -60,7 +61,7 @@ public class PaypalController {
         }catch (PayPalRESTException e) {
             System.out.println("error ocurred:: "+e.getMessage());
         }
-        return new RedirectView("payment/error");
+        return new RedirectView("/payment/error");
     }
 
     @GetMapping("/payment/success")

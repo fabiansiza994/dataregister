@@ -12,6 +12,12 @@ public class LoadDataConfig {
     @Value("${paypal.successUrl}")
     public String successUrl;
 
+    @Value("${paypal.value}")
+    public String paypalValue;
+
+    @Value("${paypal.currency}")
+    public String paypalCurrency;
+
     public String getCancelUrl() {
         return cancelUrl;
     }

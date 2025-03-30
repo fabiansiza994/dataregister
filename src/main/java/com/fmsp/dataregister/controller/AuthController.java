@@ -1,7 +1,6 @@
 package com.fmsp.dataregister.controller;
 
 import com.fmsp.dataregister.entity.Usuario;
-import com.fmsp.dataregister.repository.UsuarioRepository;
 import com.fmsp.dataregister.service.IAuthService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -12,19 +11,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Optional;
+import java.util.List;
 
 @Controller
 public class AuthController {
 
     private final IAuthService iAuthService;
-    private final UsuarioRepository usuarioRepository;
 
-    public AuthController(IAuthService iAuthService, UsuarioRepository usuarioRepository) {
+    public AuthController(IAuthService iAuthService) {
         this.iAuthService = iAuthService;
-        this.usuarioRepository = usuarioRepository;
     }
-
 
     @GetMapping("/login")
     public String mostrarLogin(HttpSession session) {
@@ -58,43 +54,32 @@ public class AuthController {
 
     @GetMapping("/perfil")
     public String mostrarPerfil(HttpSession session, Model model) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
-        if (usuario == null) {
-            return "redirect:auth/login";
-        }
-        model.addAttribute("usuario", usuario);
-        return "auth/perfil";
+        return iAuthService.mostrarPerfil(session, model);
     }
 
     @GetMapping("/perfil/editar")
     public String editarPerfil(HttpSession session, Model model) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
-        if (usuario == null) return "redirect:/login";
-        model.addAttribute("usuario", usuario);
-        return "auth/editar-perfil";
+        return iAuthService.editarPerfil(session, model);
     }
 
     @PostMapping("/perfil/actualizar")
     public String actualizarPerfil(@ModelAttribute Usuario datos, HttpSession session, RedirectAttributes redirect) {
-        Usuario actual = (Usuario) session.getAttribute("usuarioLogueado");
-        if (actual == null) return "redirect:/login";
+        return iAuthService.actualizarPerfil(datos, session, redirect);
+    }
 
-        // Validar si el correo ya está en uso por otro usuario
-        Optional<Usuario> existente = usuarioRepository.findByEmail(datos.getEmail());
-        if (existente.isPresent() && !existente.get().getId().equals(actual.getId())) {
-            redirect.addFlashAttribute("errorCorreo", "Este correo ya está en uso por otro usuario.");
-            return "redirect:/perfil/editar";
-        }
+    @GetMapping("/payment/info")
+    public String mostrarInfoPublicaPago(Model model) {
+        // Datos fijos o generales del plan básico
+        model.addAttribute("precio", 10);
+        model.addAttribute("moneda", "USD");
+        model.addAttribute("beneficios", List.of(
+                "Registro y gestión de trabajos",
+                "Control de clientes por grupo",
+                "Reportes y estadísticas visuales",
+                "Acceso multiusuario por empresa"
+        ));
 
-        // Actualiza solo los campos permitidos
-        actual.setNombre(datos.getNombre());
-        actual.setApellido(datos.getApellido());
-        actual.setEmail(datos.getEmail());
-
-        usuarioRepository.save(actual);
-        session.setAttribute("usuarioLogueado", actual);
-
-        return "redirect:/perfil?success";
+        return "payments/info";
     }
 
 

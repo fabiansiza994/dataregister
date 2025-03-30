@@ -13,4 +13,6 @@ public interface PlanRepository extends JpaRepository<Plan, Long> {
     List<Plan> findByFechaVigenciaBefore(LocalDate fecha);
 
     Plan findByEmpresa(Empresa empresa);
+
+    Plan findTopByEmpresaOrderByFechaVigenciaDesc(Empresa empresa);
 }

@@ -2,36 +2,30 @@ package com.fmsp.dataregister.service.impl;
 
 import com.fmsp.dataregister.entity.Cliente;
 import com.fmsp.dataregister.entity.Empresa;
-import com.fmsp.dataregister.entity.FormaPago;
 import com.fmsp.dataregister.entity.Usuario;
 import com.fmsp.dataregister.entity.dto.ClienteDTO;
 import com.fmsp.dataregister.repository.ClienteRepository;
 import com.fmsp.dataregister.repository.TrabajoRepository;
-import com.fmsp.dataregister.service.IClienteService;
+import com.fmsp.dataregister.service.IClientService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class ClienteService implements IClienteService {
+public class ClientService implements IClientService {
 
     private final ClienteRepository clienteRepository;
     private final TrabajoRepository trabajoRepository;
 
-    public ClienteService(ClienteRepository clienteRepository, TrabajoRepository trabajoRepository) {
+    public ClientService(ClienteRepository clienteRepository, TrabajoRepository trabajoRepository) {
         this.clienteRepository = clienteRepository;
         this.trabajoRepository = trabajoRepository;
     }

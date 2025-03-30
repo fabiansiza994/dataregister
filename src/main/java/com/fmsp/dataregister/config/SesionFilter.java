@@ -7,10 +7,14 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Set;
 
 @Component
 public class SesionFilter implements Filter {
 
+    private static final Set<String> RUTAS_PUBLICAS = Set.of(
+            "/", "/login", "/payment/info", "/payment/create"
+    );
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
@@ -24,7 +28,7 @@ public class SesionFilter implements Filter {
         // Rutas permitidas sin autenticación
         String uri = req.getRequestURI();
         boolean esRecursoEstatico = uri.startsWith("/css/") || uri.startsWith("/js/") || uri.startsWith("/images/");
-        boolean esPaginaPublica = uri.equals("/login") || uri.equals("/") || uri.startsWith("/public");
+        boolean esPaginaPublica = RUTAS_PUBLICAS.contains(uri);
 
         // Permitir acceso sin autenticación a recursos públicos
         if (sesionActiva || esPaginaPublica || esRecursoEstatico) {

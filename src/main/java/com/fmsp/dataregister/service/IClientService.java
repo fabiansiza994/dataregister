@@ -10,7 +10,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
-public interface IClienteService {
+public interface IClientService {
     String listarClientes(Model model, HttpSession session);
     String mostrarFormularioRegistro(Model model, HttpSession session);
     String guardarCliente(Cliente cliente, HttpSession session);

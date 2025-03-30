@@ -5,9 +5,9 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - datasource.url={url}
-      - datasource.username={name}
-      - datasource.password={pass}
+      - datasource.url=jdbc:postgresql://dpg-cv9g4bhu0jms73ejq2l0-a.oregon-postgres.render.com:5432/hdb_postgresql_instance
+      - datasource.username=hdb_postgresql_instance_user
+      - datasource.password=SDzUuxEinar0SwGj5dBT0jaNgptmxZzq
       - spring.profiles.active=prod
     networks:
       - myapp-network

@@ -116,9 +116,25 @@
       <span class="label">Empresa:</span>
       <span class="value" th:text="${usuario.grupo.empresa.nombre}">Empresa</span>
     </div>
-  </div>
+    <div class="info-row">
+      <i class="bi bi-calendar-check"></i>
+      <span class="label">Vigencia del plan:</span>
+      <span class="value">
+    <span th:text="${#temporals.format(plan.fechaVigencia, 'dd/MM/yyyy')}">01/01/2025</span>
 
-  <div class="mt-4 d-flex justify-content-center gap-3">
+    <span th:if="${proximoAVencer}" class="text-warning ms-2">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <form th:action="@{/payment/create}" method="post" class="d-inline">
+  <button type="submit" class="btn btn-link p-0 m-0 align-baseline text-warning text-decoration-none fw-semibold">
+    Renovar ahora <i class="bi bi-arrow-up-right"></i>
+  </button>
+</form>
+
+    </span>
+  </span>
+    </div>
+
+    <div class="mt-4 d-flex justify-content-center gap-3">
     <a th:href="@{/perfil/editar}" class="btn btn-primary">
       <i class="bi bi-pencil-square"></i> Editar Perfil
     </a>
