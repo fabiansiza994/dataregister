@@ -80,6 +80,9 @@
                             <a th:href="@{/trabajos/detalle/{id}(id=${trabajo.id})}" class="btn btn-primary btn-sm">
                                 <i class="bi bi-eye"></i>
                             </a>
+                            <a th:href="@{/trabajos/editar/{id}(id=${trabajo.id})}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
                             <button class="btn btn-danger btn-sm" th:attr="data-id=${trabajo.id}" onclick="confirmarEliminar(this)">
                                 <i class="bi bi-trash"></i>
                             </button>

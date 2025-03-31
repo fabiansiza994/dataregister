@@ -69,7 +69,6 @@ public class AuthController {
 
     @GetMapping("/payment/info")
     public String mostrarInfoPublicaPago(Model model) {
-        // Datos fijos o generales del plan básico
         model.addAttribute("precio", 10);
         model.addAttribute("moneda", "USD");
         model.addAttribute("beneficios", List.of(

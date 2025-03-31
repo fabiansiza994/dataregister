@@ -12,9 +12,11 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TrabajoRepository extends JpaRepository<Trabajo, Integer> {
+    Optional<Trabajo> findById(Long id);
     boolean existsByClienteId(Integer id);
 
     boolean existsByFormaPagoId(Long id);

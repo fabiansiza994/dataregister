@@ -8,6 +8,8 @@ paypal.client-secret=SECRET_ID
 paypal.mode=sandbox
 paypal.cancelUrl="http://localhost:8081/payment/cancel";
 paypal.successUrl="http://localhost:8081/payment/success";
+paypal.value=10.0
+paypal.currency=USD
 
 spring.datasource.url=DATABASE_URL
 spring.datasource.username=DATABSE_NAME

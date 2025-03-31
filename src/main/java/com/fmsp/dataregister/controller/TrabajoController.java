@@ -75,7 +75,6 @@ public class TrabajoController {
             return "payments/index";
         }
 
-        // Validar si hay al menos un cliente en la empresa y el grupo
         boolean hayClientesEnEmpresa = clienteRepository.existsByUsuario_Grupo_Empresa(empresaActual);
         boolean hayClientesEnGrupo = clienteRepository.existsByUsuario_Grupo(usuario.getGrupo());
 
@@ -91,7 +90,6 @@ public class TrabajoController {
         }
         List<FormaPago> formasPago = formaPagoRepository.findByEmpresaAndEstado(empresaActual, 1);
 
-        // Si params está vacío, inicializar un mapa vacío para evitar NullPointerException
         model.addAttribute("datosPrevios", params.isEmpty() ? Map.of() : params);
 
         model.addAttribute("trabajo", new Trabajo());
@@ -378,6 +376,93 @@ public class TrabajoController {
         trabajoRepository.delete(trabajo);
         response.setStatus(HttpServletResponse.SC_OK);
         return "redirect:/trabajos/listar";
+    }
+
+    @GetMapping("/editar/{id}")
+    public String mostrarFormularioEdicion(@PathVariable Integer id, Model model, HttpSession session) {
+        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        if (usuario == null) return "redirect:/auth/login";
+
+        Trabajo trabajo = trabajoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Trabajo no encontrado con ID: " + id));
+
+        if (!usuario.getRol().getNombre().equals("ADMIN") &&
+                !trabajo.getUsuario().getId().equals(usuario.getId())) {
+            return "redirect:/trabajos/listar?error=No tienes permisos para editar este trabajo";
+        }
+
+        List<Cliente> clientes = usuario.getRol().getNombre().equals("ADMIN") ?
+                clienteRepository.findByEmpresa(usuario.getGrupo().getEmpresa()) :
+                clienteRepository.findByGrupo(usuario.getGrupo());
+
+        List<FormaPago> formasPago = formaPagoRepository.findByEmpresaAndEstado(usuario.getGrupo().getEmpresa(), 1);
+
+        model.addAttribute("trabajo", trabajo);
+        model.addAttribute("clientes", clientes);
+        model.addAttribute("formasPago", formasPago);
+
+        return "trabajos/editar_trabajo";
+    }
+
+    @PostMapping("/actualizar")
+    @Transactional
+    public String actualizarTrabajo(@ModelAttribute Trabajo trabajo,
+                                    @RequestParam Map<String, String> params,
+                                    @RequestParam(value = "foto1", required = false) MultipartFile nuevaFoto1,
+                                    @RequestParam(value = "foto2", required = false) MultipartFile nuevaFoto2,
+                                    @RequestParam(value = "foto3", required = false) MultipartFile nuevaFoto3,
+                                    @RequestParam(value = "foto4", required = false) MultipartFile nuevaFoto4,
+                                    HttpSession session) {
+
+        Trabajo original = trabajoRepository.findById(trabajo.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Trabajo no encontrado"));
+
+        original.setValorLabor(trabajo.getValorLabor());
+        original.setValorMateriales(trabajo.getValorMateriales());
+        original.setGanancias(trabajo.getGanancias());
+        original.setValorTotal(trabajo.getValorTotal());
+        original.setDescripcionLabor(trabajo.getDescripcionLabor());
+        original.setCliente(trabajo.getCliente());
+        original.setFormaPago(trabajo.getFormaPago());
+
+        try {
+            if ("on".equals(params.get("eliminarFoto1")) && original.getFoto1() != null) {
+                s3Service.deleteFile(original.getFoto1());
+                original.setFoto1(null);
+            }
+            if ("on".equals(params.get("eliminarFoto2")) && original.getFoto2() != null) {
+                s3Service.deleteFile(original.getFoto2());
+                original.setFoto2(null);
+            }
+            if ("on".equals(params.get("eliminarFoto3")) && original.getFoto3() != null) {
+                s3Service.deleteFile(original.getFoto3());
+                original.setFoto3(null);
+            }
+            if ("on".equals(params.get("eliminarFoto4")) && original.getFoto4() != null) {
+                s3Service.deleteFile(original.getFoto4());
+                original.setFoto4(null);
+            }
+
+            if (nuevaFoto1 != null && !nuevaFoto1.isEmpty()) {
+                original.setFoto1(s3Service.uploadFile("trabajos/foto1_", comprimirImagen(nuevaFoto1), "image/jpeg"));
+            }
+            if (nuevaFoto2 != null && !nuevaFoto2.isEmpty()) {
+                original.setFoto2(s3Service.uploadFile("trabajos/foto2_", comprimirImagen(nuevaFoto2), "image/jpeg"));
+            }
+            if (nuevaFoto3 != null && !nuevaFoto3.isEmpty()) {
+                original.setFoto3(s3Service.uploadFile("trabajos/foto3_", comprimirImagen(nuevaFoto3), "image/jpeg"));
+            }
+            if (nuevaFoto4 != null && !nuevaFoto4.isEmpty()) {
+                original.setFoto4(s3Service.uploadFile("trabajos/foto4_", comprimirImagen(nuevaFoto4), "image/jpeg"));
+            }
+
+            trabajoRepository.save(original);
+            return "redirect:/trabajos/listar?success";
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "redirect:/trabajos/listar?error=actualizacion";
+        }
     }
 
 }
