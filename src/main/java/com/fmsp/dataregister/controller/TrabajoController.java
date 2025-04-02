@@ -3,7 +3,9 @@ package com.fmsp.dataregister.controller;
 import com.fmsp.dataregister.entity.*;
 import com.fmsp.dataregister.repository.ClienteRepository;
 import com.fmsp.dataregister.repository.FormaPagoRepository;
+import com.fmsp.dataregister.repository.ReporteRepository;
 import com.fmsp.dataregister.repository.TrabajoRepository;
+import com.fmsp.dataregister.service.impl.PdfService;
 import com.fmsp.dataregister.service.impl.S3Service;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -45,14 +47,16 @@ public class TrabajoController {
     private final TrabajoRepository trabajoRepository;
     private final ClienteRepository clienteRepository;
     private final FormaPagoRepository formaPagoRepository;
+    private final ReporteRepository reporteRepository;
     private final S3Service s3Service;
 
     private final Tika tika = new Tika();
 
-    public TrabajoController(TrabajoRepository trabajoRepository, ClienteRepository clienteRepository, FormaPagoRepository formaPagoRepository, S3Service s3Service) {
+    public TrabajoController(TrabajoRepository trabajoRepository, ClienteRepository clienteRepository, FormaPagoRepository formaPagoRepository, ReporteRepository reporteRepository, S3Service s3Service) {
         this.trabajoRepository = trabajoRepository;
         this.clienteRepository = clienteRepository;
         this.formaPagoRepository = formaPagoRepository;
+        this.reporteRepository = reporteRepository;
         this.s3Service = s3Service;
     }
 
@@ -358,7 +362,7 @@ public class TrabajoController {
 
     @DeleteMapping("/eliminar/{id}")
     @Transactional
-    public String eliminarTrabajo(@PathVariable Integer  id, HttpSession session, HttpServletResponse response) {
+    public String eliminarTrabajo(@PathVariable Integer id, HttpSession session, HttpServletResponse response) {
         Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
         if (usuario == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -368,9 +372,20 @@ public class TrabajoController {
         Trabajo trabajo = trabajoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Trabajo no encontrado con ID: " + id));
 
+        // Validar permisos
         if (!usuario.getRol().getNombre().equals("ADMIN") && !trabajo.getUsuario().getId().equals(usuario.getId())) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return "redirect:/trabajos/listar?error=No tienes permisos para eliminar este trabajo";
+        }
+
+        // Eliminar imágenes del S3 si existen
+        try {
+            if (trabajo.getFoto1() != null) s3Service.deleteFile(trabajo.getFoto1());
+            if (trabajo.getFoto2() != null) s3Service.deleteFile(trabajo.getFoto2());
+            if (trabajo.getFoto3() != null) s3Service.deleteFile(trabajo.getFoto3());
+            if (trabajo.getFoto4() != null) s3Service.deleteFile(trabajo.getFoto4());
+        } catch (Exception ex) {
+            System.err.println("⚠️ Error al eliminar imágenes del S3: " + ex.getMessage());
         }
 
         trabajoRepository.delete(trabajo);
@@ -464,5 +479,31 @@ public class TrabajoController {
             return "redirect:/trabajos/listar?error=actualizacion";
         }
     }
+
+    @GetMapping("/factura/{id}")
+    public void generarFactura(@PathVariable Integer id, HttpServletResponse response) {
+        try {
+            Trabajo trabajo = trabajoRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Trabajo no encontrado con ID: " + id));
+
+            // Obtener reporte asociado a la empresa (puedes ajustar esta lógica según tu diseño)
+            Reporte reporte = reporteRepository.findTopByEmpresa(trabajo.getUsuario().getGrupo().getEmpresa());
+            if (reporte == null) {
+                throw new IllegalStateException("No se encontró un reporte configurado para esta empresa.");
+            }
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PdfService.generarFacturaTrabajo(trabajo, reporte, baos);
+
+            response.setContentType("application/pdf");
+            response.setHeader("Content-Disposition", "attachment; filename=factura_trabajo_" + id + ".pdf");
+            response.getOutputStream().write(baos.toByteArray());
+            response.getOutputStream().flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
 }

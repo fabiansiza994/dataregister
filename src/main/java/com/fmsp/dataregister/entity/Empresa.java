@@ -19,8 +19,18 @@ public class Empresa {
 
     private String estado; // ACTIVO, INACTIVO, PENDIENTE
 
+    private String logo;
+
     @OneToMany(mappedBy = "empresa")
     private List<Grupo> grupos;
+
+    public String getLogo() {
+        return logo;
+    }
+
+    public void setLogo(String logo) {
+        this.logo = logo;
+    }
 
     public String getEstado() {
         return estado;

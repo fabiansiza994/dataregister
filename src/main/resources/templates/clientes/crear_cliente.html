@@ -83,8 +83,17 @@
                 <label class="form-label">Dirección</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-house"></i></span>
-                    <input type="text" name="direccion" class="form-control" placeholder="Ingrese la dirección" >
+                    <input type="text" name="direccion" class="form-control" placeholder="Ingrese la dirección">
                 </div>
+            </div>
+
+            <!-- Autorización tratamiento de datos -->
+            <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" id="aceptaPolitica" required>
+                <label class="form-check-label" for="aceptaPolitica">
+                    Autorizo el <strong>tratamiento de mis datos personales</strong> conforme a la
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalPoliticaDatos">Política de Tratamiento de Datos</a>.
+                </label>
             </div>
 
             <!-- Botón de Envío -->
@@ -92,6 +101,52 @@
         </form>
     </div>
 </main>
+
+<!-- Modal: Política de Tratamiento de Datos -->
+<div class="modal fade" id="modalPoliticaDatos" tabindex="-1" aria-labelledby="modalPoliticaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalPoliticaLabel">Política de Tratamiento de Datos Personales</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Última actualización:</strong> Marzo 2025</p>
+                <p>De conformidad con la Ley 1581 de 2012 y sus decretos reglamentarios...</p>
+                <h6>1. Responsable del tratamiento</h6>
+                <p>La empresa asociada a este sistema es la responsable de gestionar su información...</p>
+                <h6>2. Datos que se recolectan</h6>
+                <ul>
+                    <li>Nombre y Apellido</li>
+                    <li>Correo electrónico</li>
+                    <li>Teléfono</li>
+                    <li>Dirección</li>
+                    <li>Imágenes de trabajos realizados</li>
+                </ul>
+                <h6>3. Finalidad del tratamiento</h6>
+                <ul>
+                    <li>Gestión de la relación comercial</li>
+                    <li>Registro de trabajos</li>
+                    <li>Estadísticas internas</li>
+                </ul>
+                <h6>4. Derechos del titular</h6>
+                <ul>
+                    <li>Conocer, actualizar, rectificar y suprimir datos</li>
+                    <li>Revocar autorización</li>
+                    <li>Presentar quejas ante la SIC</li>
+                </ul>
+                <h6>5. Seguridad</h6>
+                <p>Los datos se almacenan de forma segura, incluyendo almacenamiento en la nube (Amazon S3)...</p>
+                <h6>6. Vigencia</h6>
+                <p>Esta política tiene vigencia indefinida mientras exista relación legal o comercial.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 

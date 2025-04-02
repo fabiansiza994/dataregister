@@ -95,4 +95,9 @@ public class ClientController {
         }
         return "redirect:/clientes";
     }
+
+    @GetMapping("/politica-datos")
+    public String politicaDatos() {
+        return "politica-datos";
+    }
 }

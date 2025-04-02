@@ -59,10 +59,10 @@
             <strong>Fecha:</strong> <span th:text="${trabajo.fecha}"></span>
         </div>
         <div class="mb-3">
-            <strong>Cliente:</strong> <span th:text="${trabajo.cliente.nombre}"></span>
+            <strong>Cliente:</strong> <span th:text="${trabajo.cliente.nombre} + ' ' + ${trabajo.cliente.apellido}"></span>
         </div>
         <div class="mb-3">
-            <strong>Valor Total:</strong> <span th:text="${trabajo.valorTotal}"></span> $
+            <strong>Valor Total:</strong> $ <span th:text="${trabajo.valorTotal}"></span>
         </div>
         <div class="mb-3">
             <strong>Descripción:</strong> <span th:text="${trabajo.descripcionLabor}"></span>
@@ -99,14 +99,18 @@
             </div>
         </div>
 
-
-        <div class="text-center mt-4">
+        <!-- Botones de acción -->
+        <div class="text-center mt-4 d-flex justify-content-between">
             <a href="/trabajos/listar" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Volver
+            </a>
+            <a th:href="@{/trabajos/factura/{id}(id=${trabajo.id})}" class="btn btn-success" target="_blank">
+                <i class="bi bi-file-earmark-pdf"></i> Descargar Detalle PDF
             </a>
         </div>
     </div>
 </main>
+
 <script>
     function mostrarImagen(img) {
         const wrapper = img.closest(".image-wrapper");

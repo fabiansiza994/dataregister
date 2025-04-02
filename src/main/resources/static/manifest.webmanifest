@@ -1,0 +1,20 @@
+{
+  "name": "Zeppeling",
+  "short_name": "Zeppeling",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0a74da",
+  "icons": [
+    {
+      "src": "https://dataregisterbucket.s3.us-east-2.amazonaws.com/icons/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://dataregisterbucket.s3.us-east-2.amazonaws.com/icons/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
