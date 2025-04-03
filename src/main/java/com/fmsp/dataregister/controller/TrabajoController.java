@@ -22,6 +22,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -360,12 +361,14 @@ public class TrabajoController {
         workbook.close();
     }
 
-    @DeleteMapping("/eliminar/{id}")
+    @PostMapping("/eliminar/{id}")
     @Transactional
-    public String eliminarTrabajo(@PathVariable Integer id, HttpSession session, HttpServletResponse response) {
+    public String eliminarTrabajo(@PathVariable Integer id,
+                                  HttpSession session,
+                                  RedirectAttributes redirectAttributes) {
+
         Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
         if (usuario == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return "redirect:/auth/login";
         }
 
@@ -373,12 +376,11 @@ public class TrabajoController {
                 .orElseThrow(() -> new IllegalArgumentException("Trabajo no encontrado con ID: " + id));
 
         // Validar permisos
-        if (!usuario.getRol().getNombre().equals("ADMIN") && !trabajo.getUsuario().getId().equals(usuario.getId())) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            return "redirect:/trabajos/listar?error=No tienes permisos para eliminar este trabajo";
+        if (!trabajo.getUsuario().getId().equals(usuario.getId())) {
+            redirectAttributes.addFlashAttribute("error", "No tienes permisos para eliminar este trabajo");
+            return "redirect:/trabajos/listar";
         }
 
-        // Eliminar imágenes del S3 si existen
         try {
             if (trabajo.getFoto1() != null) s3Service.deleteFile(trabajo.getFoto1());
             if (trabajo.getFoto2() != null) s3Service.deleteFile(trabajo.getFoto2());
@@ -389,9 +391,10 @@ public class TrabajoController {
         }
 
         trabajoRepository.delete(trabajo);
-        response.setStatus(HttpServletResponse.SC_OK);
+        redirectAttributes.addFlashAttribute("success", "Trabajo eliminado correctamente");
         return "redirect:/trabajos/listar";
     }
+
 
     @GetMapping("/editar/{id}")
     public String mostrarFormularioEdicion(@PathVariable Integer id, Model model, HttpSession session) {
@@ -495,8 +498,11 @@ public class TrabajoController {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PdfService.generarFacturaTrabajo(trabajo, reporte, baos);
 
+            String fechaActual = LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+            String nombreArchivo = "detalle_trabajo_" + id + "_" + fechaActual + ".pdf";
+
             response.setContentType("application/pdf");
-            response.setHeader("Content-Disposition", "attachment; filename=factura_trabajo_" + id + ".pdf");
+            response.setHeader("Content-Disposition", "attachment; filename= "+ nombreArchivo);
             response.getOutputStream().write(baos.toByteArray());
             response.getOutputStream().flush();
         } catch (Exception e) {

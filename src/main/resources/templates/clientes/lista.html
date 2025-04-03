@@ -12,6 +12,9 @@
     <!-- Íconos -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         body {
             background-color: #f8f9fa;
@@ -40,7 +43,7 @@
     <div class="container-custom w-100">
         <h3 class="text-center mb-4">Lista de Clientes</h3>
 
-        <!-- Mensaje éxito -->
+        <!-- Mensaje éxito al registrar -->
         <div th:if="${param.success}" class="alert alert-success text-center">
             ¡Cliente registrado con éxito!
         </div>
@@ -52,14 +55,11 @@
             </a>
         </div>
 
-        <!-- Error -->
-        <div th:if="${error}" class="alert alert-danger text-center">
-            <span th:text="${error}"></span>
-        </div>
-
         <!-- Buscar -->
-        <form th:action="@{/clientes/buscar}" method="get" class="mb-3 d-flex flex-column flex-sm-row justify-content-center gap-2">
-            <input type="text" name="nombre" th:value="${nombreBuscado}" class="form-control" placeholder="Buscar por nombre o apellido">
+        <form th:action="@{/clientes/buscar}" method="get"
+              class="mb-3 d-flex flex-column flex-sm-row justify-content-center gap-2">
+            <input type="text" name="nombre" th:value="${nombreBuscado}" class="form-control"
+                   placeholder="Buscar por nombre o apellido">
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-search"></i> Buscar
             </button>
@@ -67,10 +67,11 @@
 
         <!-- No encontrados -->
         <div th:if="${clientes.isEmpty() and nombreBuscado != null}" class="alert alert-warning text-center">
-            <i class="bi bi-exclamation-triangle"></i> No se encontraron clientes con el nombre "<span th:text="${nombreBuscado}"></span>".
+            <i class="bi bi-exclamation-triangle"></i> No se encontraron clientes con el nombre
+            "<span th:text="${nombreBuscado}"></span>".
         </div>
 
-        <!-- Tabla (solo en pantallas medianas o grandes) -->
+        <!-- Tabla (pantallas medianas o grandes) -->
         <div class="table-responsive d-none d-md-block" th:if="${not clientes.isEmpty()}">
             <table class="table table-bordered table-hover align-middle text-center">
                 <thead class="table-dark">
@@ -93,8 +94,8 @@
                     <td th:text="${cliente.direccion}"></td>
                     <td th:text="${cliente.telefono}"></td>
                     <td>
-              <span th:class="${cliente.estado == 'ACTIVO'} ? 'badge bg-success' : 'badge bg-danger'"
-                    th:text="${cliente.estado}"></span>
+                        <span th:class="${cliente.estado == 'ACTIVO'} ? 'badge bg-success' : 'badge bg-danger'"
+                              th:text="${cliente.estado}"></span>
                     </td>
                     <td>
                         <form th:action="@{clientes/cambiar-estado/{id}(id=${cliente.id})}" method="post">
@@ -109,9 +110,12 @@
                             <a th:href="@{/clientes/editar/{id}(id=${cliente.id})}" class="btn btn-secondary btn-sm">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <a th:href="@{/clientes/eliminar/{id}(id=${cliente.id})}" class="btn btn-danger btn-sm">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                            <form th:action="@{/clientes/eliminar/{id}(id=${cliente.id})}" method="post"
+                                  onsubmit="return confirmarEliminarCliente(this)" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -119,7 +123,7 @@
             </table>
         </div>
 
-        <!-- Cards (solo en pantallas pequeñas) -->
+        <!-- Cards (pantallas pequeñas) -->
         <div class="d-block d-md-none" th:if="${not clientes.isEmpty()}">
             <div th:each="cliente : ${clientes}" class="card shadow-sm">
                 <div class="card-body">
@@ -127,7 +131,8 @@
                         <h5 class="card-title mb-1">
                             <span th:text="${cliente.nombre} + ' ' + ${cliente.apellido}"></span>
                         </h5>
-                        <span th:class="${cliente.estado == 'ACTIVO'} ? 'badge bg-success' : 'badge bg-danger'" th:text="${cliente.estado}"></span>
+                        <span th:class="${cliente.estado == 'ACTIVO'} ? 'badge bg-success' : 'badge bg-danger'"
+                              th:text="${cliente.estado}"></span>
                     </div>
 
                     <p class="mb-1"><strong>Dirección:</strong> <span th:text="${cliente.direccion}"></span></p>
@@ -144,9 +149,12 @@
                         <a th:href="@{/clientes/editar/{id}(id=${cliente.id})}" class="btn btn-secondary btn-sm w-100">
                             <i class="bi bi-pencil-square"></i> Editar
                         </a>
-                        <a th:href="@{/clientes/eliminar/{id}(id=${cliente.id})}" class="btn btn-danger btn-sm w-100">
-                            <i class="bi bi-trash"></i> Eliminar
-                        </a>
+                        <form th:action="@{/clientes/eliminar/{id}(id=${cliente.id})}" method="post"
+                              onsubmit="return confirmarEliminarCliente(this)" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm w-100">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -154,6 +162,49 @@
 
     </div>
 </main>
+
+<!-- SweetAlert: Confirmar eliminación -->
+<script>
+    function confirmarEliminarCliente(form) {
+        event.preventDefault();
+
+        Swal.fire({
+            title: "¿Eliminar cliente?",
+            text: "Esta acción no se puede deshacer.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Sí, eliminar",
+            cancelButtonText: "Cancelar"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+
+        return false;
+    }
+</script>
+
+<!-- SweetAlert: Mostrar mensaje de éxito o error -->
+<script th:inline="javascript" th:if="${success}">
+    Swal.fire({
+        icon: 'success',
+        title: 'Éxito',
+        text: [[${success}]],
+        confirmButtonColor: '#3085d6'
+    });
+</script>
+
+<script th:inline="javascript" th:if="${error}">
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: [[${error}]],
+        confirmButtonColor: '#d33'
+    });
+</script>
 
 </body>
 </html>
