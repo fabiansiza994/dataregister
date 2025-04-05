@@ -71,7 +71,7 @@ public class ClientService implements IClientService {
     }
 
     @Override
-    public String guardarCliente(Cliente cliente, HttpSession session) {
+    public String guardarCliente(Cliente cliente, HttpSession session, RedirectAttributes redirectAttributes) {
         Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
 
         if (usuario == null) {
@@ -87,6 +87,7 @@ public class ClientService implements IClientService {
         }
 
         clienteRepository.save(cliente);
+        redirectAttributes.addFlashAttribute("success", "¡Cliente registrado con éxito!");
         return "redirect:/clientes?success";
     }
 

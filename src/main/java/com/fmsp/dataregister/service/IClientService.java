@@ -13,7 +13,7 @@ import java.util.List;
 public interface IClientService {
     String listarClientes(Model model, HttpSession session);
     String mostrarFormularioRegistro(Model model, HttpSession session);
-    String guardarCliente(Cliente cliente, HttpSession session);
+    String guardarCliente(Cliente cliente, HttpSession session, RedirectAttributes redirectAttributes);
     String eliminarCliente(Integer id, RedirectAttributes redirectAttributes, HttpServletResponse response);
     String buscarClientes(String nombre,
                           Model model, HttpSession session);

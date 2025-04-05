@@ -112,7 +112,7 @@ public class TrabajoController {
                                  @RequestParam(value = "foto2", required = false) MultipartFile foto2,
                                  @RequestParam(value = "foto3", required = false) MultipartFile foto3,
                                  @RequestParam(value = "foto4", required = false) MultipartFile foto4,
-                                 HttpSession session) {
+                                 HttpSession session, RedirectAttributes redirectAttributes) {
         try {
             // Comprimir y subir cada imagen
             if (foto1 != null && !foto1.isEmpty()) {
@@ -140,10 +140,12 @@ public class TrabajoController {
 
         } catch (IOException e) {
             e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error al guardar el trabajo.");
             return "redirect:/trabajos/registro?error";
         }
 
         trabajoRepository.save(trabajo);
+        redirectAttributes.addFlashAttribute("success", "¡Trabajo guardado con éxito!");
         return "redirect:/trabajos/listar?success";
     }
 

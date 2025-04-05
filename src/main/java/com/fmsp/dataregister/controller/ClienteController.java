@@ -41,8 +41,8 @@ public class ClienteController {
     }
 
     @PostMapping("/guardar")
-    public String guardarCliente(@ModelAttribute Cliente client, HttpSession session) {
-        return iClientService.guardarCliente(client, session);
+    public String guardarCliente(@ModelAttribute Cliente client, HttpSession session, RedirectAttributes redirectAttributes) {
+        return iClientService.guardarCliente(client, session, redirectAttributes);
     }
 
 
