@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface GrupoRepository extends JpaRepository<Grupo, Integer> {
+public interface GrupoRepository extends JpaRepository<Grupo, Long> {
     List<Grupo> findByEmpresa(Empresa empresaActual);
 }

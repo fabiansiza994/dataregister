@@ -42,18 +42,30 @@
             th:if="${session.usuarioLogueado != null and session.usuarioLogueado.rol.nombre == 'ADMIN'}">
           <a class="nav-link" th:href="@{/grupos}"><i class="bi bi-people-fill"></i> Grupos</a>
         </li>
-        <!-- Crear Usuario (solo ADMIN)
-        <li class="nav-item"
+        <!-- Crear un dropdown de Usuarios solo si es ADMIN -->
+        <li class="nav-item dropdown"
             th:if="${session.usuarioLogueado != null and session.usuarioLogueado.rol.nombre == 'ADMIN'}">
-          <a class="nav-link" th:href="@{/registro}">
-            <i class="bi bi-person-plus-fill"></i> Crear Usuario
+          <a class="nav-link dropdown-toggle" href="#" id="usuariosDropdown" role="button" data-bs-toggle="dropdown"
+             aria-expanded="false">
+            <i class="bi bi-people"></i> Usuarios
           </a>
-        </li>-->
-
-        <li th:if="${session.usuarioLogueado.rol.nombre == 'ADMIN'}">
-          <a class="nav-link" th:href="@{/auth/usuarios-bloqueados}">
-            <i class="bi bi-person-lock"></i> Desbloquear Usuarios
-          </a>
+          <ul class="dropdown-menu" aria-labelledby="usuariosDropdown">
+            <li>
+              <a class="dropdown-item" th:href="@{/registro}">
+                <i class="bi bi-person-plus-fill me-2"></i> Crear Usuario
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" th:href="@{/usuarios}">
+                <i class="bi bi-list-ul me-2"></i> Listar Usuarios
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" th:href="@{/auth/usuarios-bloqueados}">
+                <i class="bi bi-person-lock me-2"></i> Desbloquear Usuarios
+              </a>
+            </li>
+          </ul>
         </li>
 
         <!-- Usuario logueado con dropdown -->

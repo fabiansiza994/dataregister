@@ -100,7 +100,7 @@ public class GrupoService implements IGrupoService {
         }
 
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
-        Optional<Grupo> grupoOpt = grupoRepository.findById(Math.toIntExact(grupoId));
+        Optional<Grupo> grupoOpt = grupoRepository.findById(grupoId);
 
         if (usuarioOpt.isPresent() && grupoOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();

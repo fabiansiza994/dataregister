@@ -1,8 +1,8 @@
 package com.fmsp.dataregister.service.impl;
 
-import com.fmsp.dataregister.entity.Empresa;
-import com.fmsp.dataregister.entity.Plan;
-import com.fmsp.dataregister.entity.Usuario;
+import com.fmsp.dataregister.entity.*;
+import com.fmsp.dataregister.entity.dto.RegistroDTO;
+import com.fmsp.dataregister.repository.GrupoRepository;
 import com.fmsp.dataregister.repository.PlanRepository;
 import com.fmsp.dataregister.repository.RolRepository;
 import com.fmsp.dataregister.repository.UsuarioRepository;
@@ -23,12 +23,14 @@ public class AuthService implements IAuthService {
     private final UsuarioRepository usuarioRepository;
     private final PlanRepository planRepository;
     private final RolRepository rolRepository;
+    private final GrupoRepository grupoRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UsuarioRepository usuarioRepository, PlanRepository planRepository, RolRepository rolRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UsuarioRepository usuarioRepository, PlanRepository planRepository, RolRepository rolRepository, GrupoRepository grupoRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.planRepository = planRepository;
         this.rolRepository = rolRepository;
+        this.grupoRepository = grupoRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -185,24 +187,45 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public String registrarUsuario(Usuario usuario, RedirectAttributes redirect) {
-        if (usuarioRepository.findByUsuario(usuario.getUsuario()).isPresent()) {
+    public String registrarUsuario(RegistroDTO usuarioDTO, RedirectAttributes redirect) {
+        if (usuarioRepository.findByUsuario(usuarioDTO.getUsuario()).isPresent()) {
             redirect.addFlashAttribute("error", "El usuario ya existe.");
             return "redirect:/registro";
         }
 
-        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
-        usuario.setRol(rolRepository.findById(usuario.getRol().getId()).orElseThrow());
+        // Buscar entidades
+        Rol rol = rolRepository.findById(usuarioDTO.getRol().getId()).orElseThrow();
+        Grupo grupo = grupoRepository.findById(usuarioDTO.getGrupo().getId()).orElseThrow();
+
+        // Crear entidad Usuario
+        Usuario usuario = new Usuario();
+        usuario.setUsuario(usuarioDTO.getUsuario());
+        usuario.setNombre(usuarioDTO.getNombre());
+        usuario.setApellido(usuarioDTO.getApellido());
+        usuario.setEmail(usuarioDTO.getEmail());
+        usuario.setPassword(passwordEncoder.encode(usuarioDTO.getPassword()));
+        usuario.setRol(rol);
+        usuario.setGrupo(grupo);
+
         usuarioRepository.save(usuario);
         redirect.addFlashAttribute("success", "Usuario registrado exitosamente.");
         return "redirect:/login";
     }
 
+
     @Override
-    public String mostrarFormularioRegistro(Model model) {
+    public String mostrarFormularioRegistro(HttpSession session, Model model) {
+        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        Empresa empresaActual = usuario.getGrupo().getEmpresa();
+
         model.addAttribute("usuario", new Usuario());
+        model.addAttribute("grupos", obtenerTodosLosGrupos(empresaActual));
         model.addAttribute("roles", obtenerTodosLosRoles());
         return "auth/registro";
+    }
+
+    private List<Grupo> obtenerTodosLosGrupos(Empresa empresa) {
+        return grupoRepository.findByEmpresa(empresa);
     }
 
     @Override
@@ -235,5 +258,112 @@ public class AuthService implements IAuthService {
         return "redirect:/auth/usuarios-bloqueados";
     }
 
+    @Override
+    public String listarUsuarios(HttpSession session, Model model) {
+        Usuario logueado = (Usuario) session.getAttribute("usuarioLogueado");
+        if (logueado == null) {
+            return "redirect:/login";
+        }
+
+        Long empresaId = logueado.getGrupo().getEmpresa().getId();
+        List<Usuario> usuarios = usuarioRepository.findByGrupo_Empresa_Id(empresaId);
+
+        model.addAttribute("usuarios", usuarios);
+        return "auth/listar-usuarios";
+    }
+
+    @Override
+    public String buscarUsuarios(String filtro, HttpSession session, Model model) {
+        Usuario logueado = (Usuario) session.getAttribute("usuarioLogueado");
+        if (logueado == null) {
+            return "redirect:/login";
+        }
+
+        Long empresaId = logueado.getGrupo().getEmpresa().getId();
+        List<Usuario> usuarios = usuarioRepository.buscarPorNombreOUsuario(empresaId, filtro);
+
+        model.addAttribute("usuarios", usuarios);
+        model.addAttribute("nombreBuscado", filtro);
+
+        return "auth/listar-usuarios";
+    }
+
+    @Override
+    public String mostrarFormularioEdicion(Long id, HttpSession session, Model model) {
+        Usuario logueado = (Usuario) session.getAttribute("usuarioLogueado");
+        if (logueado == null) return "redirect:/login";
+
+        Usuario usuario = usuarioRepository.findById(id)
+                .filter(u -> u.getGrupo().getEmpresa().getId().equals(logueado.getGrupo().getEmpresa().getId()))
+                .orElse(null);
+
+        if (usuario == null) return "redirect:/usuarios?error=Usuario no encontrado o no autorizado.";
+
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("grupos", grupoRepository.findByEmpresa(logueado.getGrupo().getEmpresa()));
+        model.addAttribute("roles", rolRepository.findAll());
+
+        return "auth/editar-usuario";
+    }
+
+
+    @Override
+    public String actualizarUsuario(RegistroDTO datos, RedirectAttributes redirect, HttpSession session) {
+        Usuario actual = usuarioRepository.findById(datos.getId()).orElse(null);
+        if (actual == null) {
+            redirect.addFlashAttribute("error", "Usuario no encontrado.");
+            return "redirect:/usuarios";
+        }
+
+        actual.setNombre(datos.getNombre());
+        actual.setApellido(datos.getApellido());
+        actual.setEmail(datos.getEmail());
+        actual.setGrupo(grupoRepository.findById(datos.getGrupo().getId()).orElse(null));
+        actual.setRol(rolRepository.findById(datos.getRol().getId()).orElse(null));
+
+        usuarioRepository.save(actual);
+        redirect.addFlashAttribute("success", "Usuario actualizado correctamente.");
+        return "redirect:/usuarios";
+    }
+
+    @Override
+    public String mostrarResetPassword(Long id, Model model, HttpSession session) {
+        Usuario logueado = (Usuario) session.getAttribute("usuarioLogueado");
+        if (logueado == null) return "redirect:/login";
+
+        Usuario usuario = usuarioRepository.findById(id)
+                .filter(u -> u.getGrupo().getEmpresa().getId().equals(logueado.getGrupo().getEmpresa().getId()))
+                .orElse(null);
+
+        if (usuario == null) {
+            model.addAttribute("error", "Usuario no encontrado.");
+            return "redirect:/usuarios";
+        }
+
+        model.addAttribute("usuario", usuario);
+        return "auth/reset-password";
+    }
+
+
+    @Override
+    public String resetearPassword(Long id, String nuevaPassword, String confirmarPassword, RedirectAttributes redirect) {
+        if (!nuevaPassword.equals(confirmarPassword)) {
+            redirect.addFlashAttribute("error", "Las contraseñas no coinciden.");
+            return "redirect:/usuarios/resetear-password/" + id;
+        }
+
+        Optional<Usuario> userOpt = usuarioRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            redirect.addFlashAttribute("error", "Usuario no encontrado.");
+            return "redirect:/usuarios";
+        }
+
+        Usuario user = userOpt.get();
+        user.setPassword(passwordEncoder.encode(nuevaPassword));
+        usuarioRepository.save(user);
+
+        redirect.addFlashAttribute("success", "Contraseña actualizada exitosamente.");
+        return "redirect:/usuarios";
+    }
 
 }

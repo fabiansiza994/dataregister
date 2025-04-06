@@ -2,6 +2,7 @@ package com.fmsp.dataregister.controller;
 
 import com.fmsp.dataregister.entity.Rol;
 import com.fmsp.dataregister.entity.Usuario;
+import com.fmsp.dataregister.entity.dto.RegistroDTO;
 import com.fmsp.dataregister.repository.RolRepository;
 import com.fmsp.dataregister.service.IAuthService;
 import jakarta.servlet.http.HttpSession;
@@ -88,12 +89,12 @@ public class AuthController {
     }
 
     @GetMapping("/registro")
-    public String mostrarFormularioRegistro(Model model) {
-       return iAuthService.mostrarFormularioRegistro(model);
+    public String mostrarFormularioRegistro(HttpSession session, Model model) {
+       return iAuthService.mostrarFormularioRegistro(session, model);
     }
 
     @PostMapping("/registro")
-    public String registrarUsuario(@ModelAttribute Usuario usuario, RedirectAttributes redirect) {
+    public String registrarUsuario(@ModelAttribute RegistroDTO usuario, RedirectAttributes redirect) {
         return iAuthService.registrarUsuario(usuario, redirect);
     }
 
@@ -109,18 +110,6 @@ public class AuthController {
         return "auth/encriptar-password";
     }
 
-    @InitBinder
-    public void initBinder(WebDataBinder binder) {
-        binder.registerCustomEditor(Rol.class, new PropertyEditorSupport() {
-            @Override
-            public void setAsText(String text) {
-                Long id = Long.parseLong(text);
-                Rol rol = rolRepository.findById(id).orElse(null);
-                setValue(rol);
-            }
-        });
-    }
-
     @GetMapping("/auth/usuarios-bloqueados")
     public String listarUsuariosBloqueados(HttpSession session, Model model) {
         return iAuthService.listarUsuariosBloqueados(session, model);
@@ -129,6 +118,39 @@ public class AuthController {
     @PostMapping("/auth/desbloquear/{id}")
     public String desbloquearUsuario(@PathVariable Long id, RedirectAttributes redirect) {
        return iAuthService.desbloquearUsuario(id, redirect);
+    }
+
+    @GetMapping("/usuarios")
+    public String listarUsuarios(HttpSession session, Model model) {
+        return iAuthService.listarUsuarios(session, model);
+    }
+
+    @GetMapping("/usuarios/buscar")
+    public String buscarUsuarios(@RequestParam("nombre") String filtro, HttpSession session, Model model) {
+        return iAuthService.buscarUsuarios(filtro, session, model);
+    }
+
+    @GetMapping("/usuarios/editar/{id}")
+    public String mostrarFormularioEdicion(@PathVariable Long id, HttpSession session, Model model) {
+        return iAuthService.mostrarFormularioEdicion(id, session, model);
+    }
+
+    @PostMapping("/usuarios/actualizar")
+    public String actualizarUsuario(@ModelAttribute RegistroDTO usuario, RedirectAttributes redirect, HttpSession session) {
+        return iAuthService.actualizarUsuario(usuario, redirect, session);
+    }
+
+    @GetMapping("/usuarios/resetear-password/{id}")
+    public String mostrarResetPassword(@PathVariable Long id, Model model, HttpSession session) {
+        return iAuthService.mostrarResetPassword(id, model, session);
+    }
+
+    @PostMapping("/usuarios/resetear-password")
+    public String resetearPassword(@RequestParam Long id,
+                                   @RequestParam String nuevaPassword,
+                                   @RequestParam String confirmarPassword,
+                                   RedirectAttributes redirect) {
+        return iAuthService.resetearPassword(id, nuevaPassword, confirmarPassword, redirect);
     }
 
 }

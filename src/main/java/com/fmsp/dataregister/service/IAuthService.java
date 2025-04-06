@@ -1,6 +1,7 @@
 package com.fmsp.dataregister.service;
 
 import com.fmsp.dataregister.entity.Usuario;
+import com.fmsp.dataregister.entity.dto.RegistroDTO;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -22,8 +23,16 @@ public interface IAuthService {
 
     Object obtenerTodosLosRoles();
 
-    String registrarUsuario(Usuario usuario, RedirectAttributes redirect);
-    String mostrarFormularioRegistro(Model model);
+    String registrarUsuario(RegistroDTO usuario, RedirectAttributes redirect);
+    String mostrarFormularioRegistro(HttpSession session, Model model);
     String listarUsuariosBloqueados(HttpSession session, Model model);
     String desbloquearUsuario(Long id, RedirectAttributes redirect);
+    String listarUsuarios(HttpSession session, Model model);
+    String buscarUsuarios(String filtro, HttpSession session, Model model);
+
+    String mostrarFormularioEdicion(Long id, HttpSession session, Model model);
+
+    String actualizarUsuario(RegistroDTO usuario, RedirectAttributes redirect, HttpSession session);
+    String mostrarResetPassword(Long id, Model model, HttpSession session);
+    String resetearPassword(Long id, String nuevaPassword, String confirmarPassword, RedirectAttributes redirect);
 }
