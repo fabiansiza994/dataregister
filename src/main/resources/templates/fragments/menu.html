@@ -50,6 +50,12 @@
           </a>
         </li>-->
 
+        <li th:if="${session.usuarioLogueado.rol.nombre == 'ADMIN'}">
+          <a class="nav-link" th:href="@{/auth/usuarios-bloqueados}">
+            <i class="bi bi-person-lock"></i> Desbloquear Usuarios
+          </a>
+        </li>
+
         <!-- Usuario logueado con dropdown -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle d-flex align-items-center text-white"

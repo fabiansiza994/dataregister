@@ -24,4 +24,6 @@ public interface IAuthService {
 
     String registrarUsuario(Usuario usuario, RedirectAttributes redirect);
     String mostrarFormularioRegistro(Model model);
+    String listarUsuariosBloqueados(HttpSession session, Model model);
+    String desbloquearUsuario(Long id, RedirectAttributes redirect);
 }

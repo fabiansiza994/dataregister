@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -42,31 +43,60 @@ public class AuthService implements IAuthService {
 
     @Override
     public String procesarLogin(String usuario, String password, Model model, HttpSession session) {
-        Optional<Usuario> user = usuarioRepository.findByUsuario(usuario);
+        Optional<Usuario> userOpt = usuarioRepository.findByUsuario(usuario);
 
-        if (user.isPresent() && passwordEncoder.matches(password, user.get().getPassword())) {
-        //if (user.isPresent() && user.get().getPassword().equals(password)) {
-            session.setAttribute("usuarioLogueado", user.get());
+        if (userOpt.isPresent()) {
+            Usuario user = userOpt.get();
 
-            if (user.get().getGrupo() == null) {
-                return "redirect:/grupos/nuevo?msg=Debe crear o unirse a un grupo";
+            // Verificar si está bloqueado
+            if (user.isBloqueado()) {
+                model.addAttribute("error", "Tu cuenta está bloqueada por múltiples intentos fallidos.");
+                return "auth/login";
             }
 
-            if (user.get().getGrupo().getEmpresa() == null) {
-                return "redirect:/empresas/nueva?msg=Debe crear una empresa antes de continuar";
+            // Verificar contraseña
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                user.setIntentosFallidos(0); // ✅ reinicia los intentos
+                usuarioRepository.save(user);
+
+                session.setAttribute("usuarioLogueado", user);
+
+                if (user.getGrupo() == null) {
+                    return "redirect:/grupos/nuevo?msg=Debe crear o unirse a un grupo";
+                }
+
+                if (user.getGrupo().getEmpresa() == null) {
+                    return "redirect:/empresas/nueva?msg=Debe crear una empresa antes de continuar";
+                }
+
+                if ("PENDIENTE".equals(user.getGrupo().getEmpresa().getEstado())) {
+                    model.addAttribute("alertaPago", "Por favor, realice el pago de la suscripción.");
+                }
+
+                return "home";
+
+            } else {
+                // Contraseña incorrecta → incrementar intentos
+                int intentos = user.getIntentosFallidos() + 1;
+                user.setIntentosFallidos(intentos);
+
+                if (intentos >= 5) {
+                    user.setBloqueado(true);
+                    model.addAttribute("error", "Has excedido el número de intentos permitidos. Tu cuenta ha sido bloqueada.");
+                } else {
+                    model.addAttribute("error", "Usuario o contraseña incorrectos. Intento " + intentos + " de 5.");
+                }
+
+                usuarioRepository.save(user);
+                return "auth/login";
             }
 
-            // Verificar el estado de la empresa
-            if ("PENDIENTE".equals(user.get().getGrupo().getEmpresa().getEstado())) {
-                model.addAttribute("alertaPago", "Por favor, realice el pago de la suscripción.");
-            }
-
-            return "home"; // Se redirige a la vista `home.html`
         } else {
-            model.addAttribute("error", "Usuario o contraseña incorrectos");
+            model.addAttribute("error", "Usuario o contraseña incorrectos.");
             return "auth/login";
         }
     }
+
 
     @Override
     public String cerrarSesion(HttpSession session) {
@@ -174,4 +204,36 @@ public class AuthService implements IAuthService {
         model.addAttribute("roles", obtenerTodosLosRoles());
         return "auth/registro";
     }
+
+    @Override
+    public String listarUsuariosBloqueados(HttpSession session, Model model) {
+        Usuario logueado = (Usuario) session.getAttribute("usuarioLogueado");
+        if (logueado == null) {
+            return "redirect:/login";
+        }
+
+        Long empresaId = logueado.getGrupo().getEmpresa().getId();
+
+        List<Usuario> bloqueados = usuarioRepository.findByBloqueadoTrueAndGrupo_Empresa_Id(empresaId);
+        model.addAttribute("usuariosBloqueados", bloqueados);
+
+        return "auth/usuarios-bloqueados";
+    }
+
+    @Override
+    public String desbloquearUsuario(Long id, RedirectAttributes redirect) {
+        Optional<Usuario> userOpt = usuarioRepository.findById(id);
+        if (userOpt.isPresent()) {
+            Usuario user = userOpt.get();
+            user.setIntentosFallidos(0);
+            user.setBloqueado(false);
+            usuarioRepository.save(user);
+            redirect.addFlashAttribute("success", "Usuario desbloqueado exitosamente.");
+        } else {
+            redirect.addFlashAttribute("error", "Usuario no encontrado.");
+        }
+        return "redirect:/auth/usuarios-bloqueados";
+    }
+
+
 }

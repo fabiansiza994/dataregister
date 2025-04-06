@@ -34,6 +34,28 @@ public class Usuario {
     @OneToMany(mappedBy = "usuario")
     private List<Cliente> clientesRegistrados;
 
+    @Column(name = "intentos_fallidos")
+    private int intentosFallidos = 0;
+
+    @Column(name = "bloqueado")
+    private boolean bloqueado = false;
+
+    public int getIntentosFallidos() {
+        return intentosFallidos;
+    }
+
+    public void setIntentosFallidos(int intentosFallidos) {
+        this.intentosFallidos = intentosFallidos;
+    }
+
+    public boolean isBloqueado() {
+        return bloqueado;
+    }
+
+    public void setBloqueado(boolean bloqueado) {
+        this.bloqueado = bloqueado;
+    }
+
     public String getEmail() {
         return email;
     }

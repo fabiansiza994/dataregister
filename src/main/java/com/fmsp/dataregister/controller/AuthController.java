@@ -121,5 +121,14 @@ public class AuthController {
         });
     }
 
+    @GetMapping("/auth/usuarios-bloqueados")
+    public String listarUsuariosBloqueados(HttpSession session, Model model) {
+        return iAuthService.listarUsuariosBloqueados(session, model);
+    }
+
+    @PostMapping("/auth/desbloquear/{id}")
+    public String desbloquearUsuario(@PathVariable Long id, RedirectAttributes redirect) {
+       return iAuthService.desbloquearUsuario(id, redirect);
+    }
 
 }
