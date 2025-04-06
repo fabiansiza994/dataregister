@@ -4,9 +4,11 @@ import com.fmsp.dataregister.entity.Empresa;
 import com.fmsp.dataregister.entity.Plan;
 import com.fmsp.dataregister.entity.Usuario;
 import com.fmsp.dataregister.repository.PlanRepository;
+import com.fmsp.dataregister.repository.RolRepository;
 import com.fmsp.dataregister.repository.UsuarioRepository;
 import com.fmsp.dataregister.service.IAuthService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -19,10 +21,14 @@ public class AuthService implements IAuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final PlanRepository planRepository;
+    private final RolRepository rolRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UsuarioRepository usuarioRepository, PlanRepository planRepository) {
+    public AuthService(UsuarioRepository usuarioRepository, PlanRepository planRepository, RolRepository rolRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.planRepository = planRepository;
+        this.rolRepository = rolRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -38,7 +44,8 @@ public class AuthService implements IAuthService {
     public String procesarLogin(String usuario, String password, Model model, HttpSession session) {
         Optional<Usuario> user = usuarioRepository.findByUsuario(usuario);
 
-        if (user.isPresent() && user.get().getPassword().equals(password)) {
+        if (user.isPresent() && passwordEncoder.matches(password, user.get().getPassword())) {
+        //if (user.isPresent() && user.get().getPassword().equals(password)) {
             session.setAttribute("usuarioLogueado", user.get());
 
             if (user.get().getGrupo() == null) {
@@ -140,5 +147,31 @@ public class AuthService implements IAuthService {
         session.setAttribute("usuarioLogueado", actual);
 
         return "redirect:/perfil?success";
+    }
+
+    @Override
+    public Object obtenerTodosLosRoles() {
+        return rolRepository.findAll();
+    }
+
+    @Override
+    public String registrarUsuario(Usuario usuario, RedirectAttributes redirect) {
+        if (usuarioRepository.findByUsuario(usuario.getUsuario()).isPresent()) {
+            redirect.addFlashAttribute("error", "El usuario ya existe.");
+            return "redirect:/registro";
+        }
+
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        usuario.setRol(rolRepository.findById(usuario.getRol().getId()).orElseThrow());
+        usuarioRepository.save(usuario);
+        redirect.addFlashAttribute("success", "Usuario registrado exitosamente.");
+        return "redirect:/login";
+    }
+
+    @Override
+    public String mostrarFormularioRegistro(Model model) {
+        model.addAttribute("usuario", new Usuario());
+        model.addAttribute("roles", obtenerTodosLosRoles());
+        return "auth/registro";
     }
 }

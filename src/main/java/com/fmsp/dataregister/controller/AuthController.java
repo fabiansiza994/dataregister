@@ -1,25 +1,31 @@
 package com.fmsp.dataregister.controller;
 
+import com.fmsp.dataregister.entity.Rol;
 import com.fmsp.dataregister.entity.Usuario;
+import com.fmsp.dataregister.repository.RolRepository;
 import com.fmsp.dataregister.service.IAuthService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.beans.PropertyEditorSupport;
 import java.util.List;
 
 @Controller
 public class AuthController {
 
     private final IAuthService iAuthService;
+    private final PasswordEncoder passwordEncoder;
+    private final RolRepository rolRepository;
 
-    public AuthController(IAuthService iAuthService) {
+    public AuthController(IAuthService iAuthService, PasswordEncoder passwordEncoder, RolRepository rolRepository) {
         this.iAuthService = iAuthService;
+        this.passwordEncoder = passwordEncoder;
+        this.rolRepository = rolRepository;
     }
 
     @GetMapping("/login")
@@ -79,6 +85,40 @@ public class AuthController {
         ));
 
         return "payments/info";
+    }
+
+    @GetMapping("/registro")
+    public String mostrarFormularioRegistro(Model model) {
+       return iAuthService.mostrarFormularioRegistro(model);
+    }
+
+    @PostMapping("/registro")
+    public String registrarUsuario(@ModelAttribute Usuario usuario, RedirectAttributes redirect) {
+        return iAuthService.registrarUsuario(usuario, redirect);
+    }
+
+    @GetMapping("/encriptar")
+    public String mostrarCodificador() {
+        return "auth/encriptar-password";
+    }
+
+    @PostMapping("/encriptar")
+    public String codificarPassword(@RequestParam String password, Model model) {
+        String encoded = passwordEncoder.encode(password);
+        model.addAttribute("encodedPassword", encoded);
+        return "auth/encriptar-password";
+    }
+
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(Rol.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) {
+                Long id = Long.parseLong(text);
+                Rol rol = rolRepository.findById(id).orElse(null);
+                setValue(rol);
+            }
+        });
     }
 
 

@@ -13,7 +13,7 @@ import java.util.Set;
 public class SesionFilter implements Filter {
 
     private static final Set<String> RUTAS_PUBLICAS = Set.of(
-            "/", "/login", "/payment/info", "/payment/create", "/clientes/politica-datos"
+            "/", "/login", "/payment/info", "/payment/create", "/clientes/politica-datos", "/encriptar"
     );
 
     @Override

@@ -19,4 +19,9 @@ public interface IAuthService {
     String mostrarPerfil(HttpSession session, Model model);
     String editarPerfil(HttpSession session, Model model);
     String actualizarPerfil(@ModelAttribute Usuario datos, HttpSession session, RedirectAttributes redirect);
+
+    Object obtenerTodosLosRoles();
+
+    String registrarUsuario(Usuario usuario, RedirectAttributes redirect);
+    String mostrarFormularioRegistro(Model model);
 }
