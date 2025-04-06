@@ -83,14 +83,16 @@ public class TrabajoController {
         boolean hayClientesEnEmpresa = clienteRepository.existsByUsuario_Grupo_Empresa(empresaActual);
         boolean hayClientesEnGrupo = clienteRepository.existsByUsuario_Grupo(usuario.getGrupo());
 
-        if (!hayClientesEnEmpresa || !hayClientesEnGrupo) {
-            return "redirect:/clientes/nuevo?error=Debe crear al menos un cliente antes de registrar trabajos.";
-        }
-
         List<Cliente> clientes;
         if (usuario.getRol().getNombre().equals("ADMIN")) {
+            if (!hayClientesEnEmpresa) {
+                return "redirect:/clientes/nuevo?error=Debe crear al menos un cliente antes de registrar trabajos.";
+            }
             clientes = clienteRepository.findByEmpresa(empresaActual);  // ADMIN ve todos los clientes
         } else {
+            if (!hayClientesEnEmpresa || !hayClientesEnGrupo) {
+                return "redirect:/clientes/nuevo?error=Debe crear al menos un cliente antes de registrar trabajos.";
+            }
             clientes = clienteRepository.findByGrupo(usuario.getGrupo()); // Usuario normal solo ve los suyos
         }
         List<FormaPago> formasPago = formaPagoRepository.findByEmpresaAndEstado(empresaActual, 1);
@@ -511,7 +513,4 @@ public class TrabajoController {
             e.printStackTrace();
         }
     }
-
-
-
 }
