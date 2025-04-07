@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Mensajes de Soporte</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"/>
+</head>
+<body style="background-color: #f8f9fa;">
+
+<div th:replace="~{fragments/menu.html}"></div>
+
+<main class="container mt-4">
+  <div class="card shadow p-4">
+    <h4 class="mb-4 text-center">Mensajes de Soporte de la Empresa</h4>
+
+    <div th:if="${mensajes != null and #lists.isEmpty(mensajes)}" class="alert alert-info">
+      No se han enviado mensajes de soporte aún.
+    </div>
+
+    <ul class="list-group" th:if="${mensajes != null and !#lists.isEmpty(mensajes)}">
+      <li class="list-group-item mb-2" th:each="msg : ${mensajes}">
+        <div class="fw-bold">
+          <span th:text="${msg.usuario.nombre + ' ' + msg.usuario.apellido}">Usuario</span>
+          <small class="text-muted float-end" th:text="${#temporals.format(msg.fecha, 'dd/MM/yyyy HH:mm')}">Fecha</small>
+        </div>
+        <div><strong th:text="${msg.asunto}"></strong></div>
+        <div th:text="${msg.mensaje}"></div>
+      </li>
+    </ul>
+  </div>
+</main>
+
+</body>
+</html>
