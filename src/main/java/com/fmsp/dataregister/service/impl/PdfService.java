@@ -69,7 +69,7 @@ public class PdfService {
 
 
         String fechaHoy = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        doc.add(new Paragraph("Fecha: " + fechaHoy)
+        doc.add(new Paragraph("Date: " + fechaHoy)
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setFontSize(10));
 
@@ -93,30 +93,30 @@ public class PdfService {
         Table table = new Table(UnitValue.createPercentArray(new float[]{30, 70}))
                 .useAllAvailableWidth();
 
-        table.addCell(celda("Fecha del trabajo", true));
+        table.addCell(celda("Work Date", true));
         table.addCell(celda(String.valueOf(trabajo.getFecha()), false));
 
-        table.addCell(celda("Cliente", true));
+        table.addCell(celda("Client", true));
         table.addCell(celda(trabajo.getCliente().getNombre() + " " + trabajo.getCliente().getApellido(), false));
 
-        table.addCell(celda("Descripción", true));
+        table.addCell(celda("Description", true));
         table.addCell(celda(trabajo.getDescripcionLabor(), false));
 
-        table.addCell(celda("Valor Labor", true));
+        table.addCell(celda("Labor Cost", true));
         table.addCell(celda("$" + trabajo.getValorLabor(), false));
 
-        table.addCell(celda("Valor Materiales", true));
+        table.addCell(celda("Material Cost", true));
         table.addCell(celda("$" + trabajo.getValorMateriales(), false));
 
-        table.addCell(celda("Valor Total", true));
+        table.addCell(celda("Total Cost", true));
         table.addCell(celda("$" + trabajo.getValorTotal(), false));
 
         doc.add(table);
 
-        doc.add(new Paragraph("\nRealizado por: " + trabajo.getUsuario().getUsuario())
+        /*doc.add(new Paragraph("\nRealizado por: " + trabajo.getUsuario().getUsuario())
                 .setFontSize(10)
                 .setTextAlignment(TextAlignment.LEFT)
-                .setMarginTop(30));
+                .setMarginTop(30));*/
 
         if (reporte.getPiePagina() != null && !reporte.getPiePagina().isEmpty()) {
             doc.add(new Paragraph(reporte.getPiePagina())
