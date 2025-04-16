@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <base href="https://dataregisterapp.com/" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lista de Clientes</title>
@@ -220,6 +221,6 @@ function confirmarEliminar(form) {
 
     window.onload = () => cargarClientes(0);
 </script>
-
+<script src="/js/resolver-rutas.js"></script>
 </body>
 </html>
