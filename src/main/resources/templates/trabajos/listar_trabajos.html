@@ -63,9 +63,9 @@
             <p class="mt-2 text-primary">Cargando trabajos...</p>
         </div>
 
-        <!-- Tabla dinámica AJAX -->
-        <div class="table-responsive" id="tablaTrabajosContainer">
-            <!-- Tabla se carga por JS -->
+        <!-- Contenedor dinámico AJAX -->
+        <div id="tablaTrabajosContainer">
+            <!-- Aquí se renderizan tabla o cards según pantalla -->
         </div>
 
         <!-- Paginación -->
@@ -87,7 +87,6 @@
             ? `/trabajos/listarAjax?cliente=${encodeURIComponent(cliente)}&page=${pagina}`
             : `/trabajos/listarAjax?page=${pagina}`;
 
-        // Mostrar loader, ocultar tabla
         document.getElementById("loaderTrabajos").style.display = "block";
         document.getElementById("tablaTrabajosContainer").style.display = "none";
 
@@ -95,31 +94,61 @@
             .then(res => res.json())
             .then(data => {
                 const trabajos = data.content;
-                let html = `
-                <table class="table table-striped table-hover align-middle">
-                    <thead class="table-dark text-center">
-                    <tr>
-                        <th>ID</th>
-                        <th>Fecha</th>
-                        <th>Cliente</th>
-                        <th class="d-none d-sm-table-cell">Valor Total</th>
-                        <th class="d-none d-sm-table-cell">Realizado por</th>
-                        <th>Acciones</th>
-                    </tr>
-                    </thead>
-                    <tbody>`;
+                let html = "";
 
-                if (trabajos.length === 0) {
-                    html += `<tr><td colspan="6" class="text-center text-warning">No se encontraron trabajos.</td></tr>`;
+                if (window.innerWidth < 576) {
+                    // Vista móvil: cards
+                    if (trabajos.length === 0) {
+                        html += `<div class="alert alert-warning text-center">No se encontraron trabajos.</div>`;
+                    } else {
+                        trabajos.forEach(t => {
+                            html += `
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">Trabajo #${t.id}</h5>
+                                <p class="mb-1"><strong>Fecha:</strong> ${t.fecha}</p>
+                                <p class="mb-1"><strong>Cliente:</strong> ${t.cliente}</p>
+                                <p class="mb-1"><strong>Valor Total:</strong> $${t.valorTotal ?? 0}</p>
+                                <p class="mb-3"><strong>Realizado por:</strong> ${t.usuario}</p>
+                                <div class="d-grid gap-2">
+                                    <a href="/trabajos/detalle/${t.id}" class="btn btn-primary btn-sm"><i class="bi bi-eye"></i> Ver</a>
+                                    <a href="/trabajos/editar/${t.id}" class="btn btn-warning btn-sm"><i class="bi bi-pencil-square"></i> Editar</a>
+                                    <form action="/trabajos/eliminar/${t.id}" method="post" onsubmit="return confirmarEliminar(this)">
+                                        <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> Eliminar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>`;
+                        });
+                    }
                 } else {
-                    trabajos.forEach(t => {
-                        html += `
+                    // Vista escritorio: tabla
+                    html += `
+                <div class="table-responsive d-none d-sm-block">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-dark text-center">
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th class="d-none d-md-table-cell">Valor Total</th>
+                            <th class="d-none d-md-table-cell">Realizado por</th>
+                            <th>Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody>`;
+
+                    if (trabajos.length === 0) {
+                        html += `<tr><td colspan="6" class="text-center text-warning">No se encontraron trabajos.</td></tr>`;
+                    } else {
+                        trabajos.forEach(t => {
+                            html += `
                         <tr class="text-center">
                             <td>${t.id}</td>
                             <td>${t.fecha}</td>
                             <td>${t.cliente}</td>
-                            <td class="d-none d-sm-table-cell">${t.valorTotal ?? 0}</td>
-                            <td class="d-none d-sm-table-cell">${t.usuario}</td>
+                            <td class="d-none d-md-table-cell">${t.valorTotal ?? 0}</td>
+                            <td class="d-none d-md-table-cell">${t.usuario}</td>
                             <td>
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-center">
                                     <a href="/trabajos/detalle/${t.id}" class="btn btn-primary btn-sm"><i class="bi bi-eye"></i></a>
@@ -130,17 +159,18 @@
                                 </div>
                             </td>
                         </tr>`;
-                    });
+                        });
+                    }
+
+                    html += `</tbody></table></div>`;
                 }
 
-                html += `</tbody></table>`;
                 document.getElementById("tablaTrabajosContainer").innerHTML = html;
 
                 paginaActual = data.number;
                 document.getElementById("btnAnterior").disabled = data.first;
                 document.getElementById("btnSiguiente").disabled = data.last;
 
-                // Ocultar loader, mostrar tabla
                 document.getElementById("loaderTrabajos").style.display = "none";
                 document.getElementById("tablaTrabajosContainer").style.display = "block";
             })
@@ -153,7 +183,7 @@
             });
     }
 
-    function confirmarEliminar(form) {
+function confirmarEliminar(form) {
         event.preventDefault();
         Swal.fire({
             title: "¿Estás seguro?",
