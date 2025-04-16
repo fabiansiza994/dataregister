@@ -156,7 +156,7 @@ public class ClientService implements IClientService {
 
         Cliente nuevoCliente = clienteRepository.save(cliente);
         return new ClienteDTO(nuevoCliente.getId(), nuevoCliente.getNombre(), nuevoCliente.getApellido(),
-                nuevoCliente.getDireccion(), nuevoCliente.getTelefono());
+                nuevoCliente.getDireccion(), nuevoCliente.getTelefono(), "ACTIVO");
     }
 
     @Override
@@ -172,7 +172,7 @@ public class ClientService implements IClientService {
         Page<Cliente> clientesPage = clienteRepository.findByEmpresaAndEstado(empresaActual, "ACTIVO", PageRequest.of(page, 10));
 
         List<ClienteDTO> clientesDTO = clientesPage.getContent().stream()
-                .map(cliente -> new ClienteDTO(cliente.getId(), cliente.getNombre(), cliente.getApellido(), cliente.getDireccion(), cliente.getTelefono()))
+                .map(cliente -> new ClienteDTO(cliente.getId(), cliente.getNombre(), cliente.getApellido(), cliente.getDireccion(), cliente.getTelefono(), "ACTIVO"))
                 .collect(Collectors.toList());
 
         return new PageImpl<>(clientesDTO, clientesPage.getPageable(), clientesPage.getTotalElements());
@@ -191,7 +191,7 @@ public class ClientService implements IClientService {
 
         return clientes.stream()
                 .map(cliente -> new ClienteDTO(cliente.getId(), cliente.getNombre(), cliente.getApellido(),
-                        cliente.getDireccion(), cliente.getTelefono()))
+                        cliente.getDireccion(), cliente.getTelefono(), cliente.getEstado()))
                 .toList();
     }
 
@@ -222,4 +222,28 @@ public class ClientService implements IClientService {
         redirectAttributes.addFlashAttribute("success", "Cliente actualizado correctamente.");
         return "redirect:/clientes";
     }
+
+    @Override
+    public Page<ClienteDTO> listarTodosClientesAjax(int page, HttpSession session) {
+        UsuarioSesionDTO usuario = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+        if (usuario == null) throw new RuntimeException("Usuario no autenticado");
+
+        Usuario user = usuarioRepository.findById(usuario.getId()).orElseThrow();
+        Empresa empresaActual = user.getGrupo().getEmpresa();
+        Page<Cliente> clientesPage;
+
+        if (user.getRol().getNombre().equals("ADMIN")) {
+            clientesPage = clienteRepository.findByEmpresa(empresaActual, PageRequest.of(page, 10));
+        } else {
+            clientesPage = clienteRepository.findByUsuario_Grupo(user.getGrupo(), PageRequest.of(page, 10));
+        }
+
+        List<ClienteDTO> clientesDTO = clientesPage.getContent().stream()
+                .map(cliente -> new ClienteDTO(cliente.getId(), cliente.getNombre(), cliente.getApellido(),
+                        cliente.getDireccion(), cliente.getTelefono(), cliente.getEstado()))
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(clientesDTO, clientesPage.getPageable(), clientesPage.getTotalElements());
+    }
+
 }

@@ -22,5 +22,6 @@ public interface IClientService {
     List<ClienteDTO> buscarClientesAjax(String nombre, HttpSession session);
     String editarCliente(Integer id, Model model);
     String actualizarCliente(Cliente cliente, HttpSession session, RedirectAttributes redirectAttributes);
+    Page<ClienteDTO> listarTodosClientesAjax(int page, HttpSession session);
 }
 

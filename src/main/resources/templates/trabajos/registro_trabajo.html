@@ -295,6 +295,46 @@
             form.classList.add('was-validated'); // útil si quieres usar estilos Bootstrap
         }
     });
+
+    function registrarCliente() {
+        const nombre = document.getElementById("nombreCliente").value;
+        const apellido = document.getElementById("apellidoCliente").value;
+        const direccion = document.getElementById("direccionCliente").value;
+        const telefono = document.getElementById("telefonoCliente").value;
+
+        fetch('/clientes/guardarAjax', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                nombre,
+                apellido,
+                direccion,
+                telefono
+            })
+        })
+            .then(response => response.json())
+            .then(cliente => {
+                // Auto-seleccionar cliente recién creado
+                seleccionarCliente(cliente.id, cliente.nombre, cliente.apellido);
+
+                // Cerrar modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById("modalRegistroCliente"));
+                modal.hide();
+
+                // Limpiar formulario
+                document.getElementById("formNuevoCliente").reset();
+
+                // Volver a cargar clientes en el modal
+                cargarClientes(0);
+            })
+            .catch(error => {
+                console.error("Error al registrar cliente:", error);
+                Swal.fire("Error", "No se pudo registrar el cliente", "error");
+            });
+    }
+
 </script>
 
 </body>

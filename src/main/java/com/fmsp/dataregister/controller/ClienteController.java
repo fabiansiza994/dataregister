@@ -100,4 +100,11 @@ public class ClienteController {
     public String politicaDatos() {
         return "politica-datos";
     }
+
+    @GetMapping("/listarAjaxTodos")
+    @ResponseBody
+    public Page<ClienteDTO> listarTodosClientesAjax(@RequestParam(defaultValue = "0") int page, HttpSession session) {
+        return iClientService.listarTodosClientesAjax(page, session);
+    }
+
 }

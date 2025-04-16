@@ -19,17 +19,12 @@
         body {
             background-color: #f8f9fa;
         }
-
         .container-custom {
-            max-width: 800px;
+            max-width: 950px;
             background: white;
             padding: 2rem;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .card + .card {
-            margin-top: 1rem;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -38,136 +33,139 @@
 <!-- Menú -->
 <div th:replace="~{fragments/menu.html}"></div>
 
-<!-- Contenido -->
 <main class="d-flex justify-content-center mt-4 px-2">
     <div class="container-custom w-100">
         <h3 class="text-center mb-4">Lista de Clientes</h3>
 
-        <!-- Mensaje éxito al registrar -->
         <div th:if="${param.success}" class="alert alert-success text-center">
             ¡Cliente registrado con éxito!
         </div>
 
-        <!-- Botón agregar -->
         <div class="mb-3 text-center">
             <a href="/clientes/nuevo" class="btn btn-primary">
                 <i class="bi bi-plus-lg"></i> Agregar Cliente
             </a>
         </div>
 
-        <!-- Buscar -->
-        <form th:action="@{/clientes/buscar}" method="get"
-              class="mb-3 d-flex flex-column flex-sm-row justify-content-center gap-2">
-            <input type="text" name="nombre" th:value="${nombreBuscado}" class="form-control"
-                   placeholder="Buscar por nombre o apellido">
-            <button type="submit" class="btn btn-primary">
+        <div class="mb-4 d-flex flex-column flex-sm-row justify-content-center gap-2">
+            <input type="text" id="busquedaCliente" class="form-control" placeholder="Buscar por nombre o apellido">
+            <button onclick="cargarClientes(0)" class="btn btn-primary">
                 <i class="bi bi-search"></i> Buscar
             </button>
-        </form>
-
-        <!-- No encontrados -->
-        <div th:if="${clientes.isEmpty() and nombreBuscado != null}" class="alert alert-warning text-center">
-            <i class="bi bi-exclamation-triangle"></i> No se encontraron clientes con el nombre
-            "<span th:text="${nombreBuscado}"></span>".
         </div>
 
-        <!-- Tabla (pantallas medianas o grandes) -->
-        <div class="table-responsive d-none d-md-block" th:if="${not clientes.isEmpty()}">
-            <table class="table table-bordered table-hover align-middle text-center">
-                <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Dirección</th>
-                    <th>Teléfono</th>
-                    <th>Estado</th>
-                    <th>Activar/Inactivar</th>
-                    <th>Acciones</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="cliente : ${clientes}">
-                    <td th:text="${cliente.id}"></td>
-                    <td th:text="${cliente.nombre}"></td>
-                    <td th:text="${cliente.apellido}"></td>
-                    <td th:text="${cliente.direccion}"></td>
-                    <td th:text="${cliente.telefono}"></td>
-                    <td>
-                        <span th:class="${cliente.estado == 'ACTIVO'} ? 'badge bg-success' : 'badge bg-danger'"
-                              th:text="${cliente.estado}"></span>
-                    </td>
-                    <td>
-                        <form th:action="@{clientes/cambiar-estado/{id}(id=${cliente.id})}" method="post">
-                            <button type="submit" class="btn btn-warning btn-sm">
-                                <i class="bi" th:classappend="${cliente.estado == 'ACTIVO'} ? ' bi-toggle-on' : ' bi-toggle-off'"></i>
-                                <span th:text="${cliente.estado == 'ACTIVO' ? 'Desactivar' : 'Activar'}"></span>
-                            </button>
-                        </form>
-                    </td>
-                    <td>
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                            <a th:href="@{/clientes/editar/{id}(id=${cliente.id})}" class="btn btn-secondary btn-sm">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-                            <form th:action="@{/clientes/eliminar/{id}(id=${cliente.id})}" method="post"
-                                  onsubmit="return confirmarEliminarCliente(this)" style="display:inline;">
-                                <button type="submit" class="btn btn-danger btn-sm">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Cards (pantallas pequeñas) -->
-        <div class="d-block d-md-none" th:if="${not clientes.isEmpty()}">
-            <div th:each="cliente : ${clientes}" class="card shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-1">
-                            <span th:text="${cliente.nombre} + ' ' + ${cliente.apellido}"></span>
-                        </h5>
-                        <span th:class="${cliente.estado == 'ACTIVO'} ? 'badge bg-success' : 'badge bg-danger'"
-                              th:text="${cliente.estado}"></span>
-                    </div>
-
-                    <p class="mb-1"><strong>Dirección:</strong> <span th:text="${cliente.direccion}"></span></p>
-                    <p class="mb-2"><strong>Teléfono:</strong> <span th:text="${cliente.telefono}"></span></p>
-
-                    <div class="d-grid gap-2">
-                        <form th:action="@{clientes/cambiar-estado/{id}(id=${cliente.id})}" method="post">
-                            <button type="submit" class="btn btn-warning btn-sm w-100">
-                                <i class="bi" th:classappend="${cliente.estado == 'ACTIVO'} ? ' bi-toggle-on' : ' bi-toggle-off'"></i>
-                                <span th:text="${cliente.estado == 'ACTIVO' ? 'Desactivar' : 'Activar'}"></span>
-                            </button>
-                        </form>
-
-                        <a th:href="@{/clientes/editar/{id}(id=${cliente.id})}" class="btn btn-secondary btn-sm w-100">
-                            <i class="bi bi-pencil-square"></i> Editar
-                        </a>
-                        <form th:action="@{/clientes/eliminar/{id}(id=${cliente.id})}" method="post"
-                              onsubmit="return confirmarEliminarCliente(this)" style="display:inline;">
-                            <button type="submit" class="btn btn-danger btn-sm w-100">
-                                <i class="bi bi-trash"></i> Eliminar
-                            </button>
-                        </form>
-                    </div>
-                </div>
+        <div id="loaderClientes" class="text-center my-4" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
             </div>
+            <p class="mt-2 text-primary">Cargando clientes...</p>
         </div>
 
+        <div class="table-responsive" id="tablaClientesContainer">
+            <!-- Se llena por JavaScript -->
+        </div>
+
+        <div class="d-flex justify-content-between mt-3">
+            <button id="btnAnterior" class="btn btn-outline-secondary" onclick="cargarClientes(paginaActual - 1)" disabled>Anterior</button>
+            <button id="btnSiguiente" class="btn btn-outline-secondary" onclick="cargarClientes(paginaActual + 1)" disabled>Siguiente</button>
+        </div>
     </div>
 </main>
 
-<!-- SweetAlert: Confirmar eliminación -->
 <script>
-    function confirmarEliminarCliente(form) {
-        event.preventDefault();
+    let paginaActual = 0;
 
+    function cargarClientes(pagina) {
+        if (pagina < 0) return;
+
+        const nombre = document.getElementById("busquedaCliente").value;
+        const url = nombre
+            ? `/clientes/buscarAjax?nombre=${encodeURIComponent(nombre)}`
+            : `/clientes/listarAjaxTodos?page=${pagina}`;
+
+        document.getElementById("loaderClientes").style.display = "block";
+        document.getElementById("tablaClientesContainer").style.display = "none";
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                const clientes = data.content || data;
+
+                let html = `
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th class="d-none d-sm-table-cell">Dirección</th>
+                            <th class="d-none d-sm-table-cell">Teléfono</th>
+                            <th>Estado</th>
+                            <th>Activar/Inactivar</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                if (clientes.length === 0) {
+                    html += `<tr><td colspan="8" class="text-center text-warning">No se encontraron clientes.</td></tr>`;
+                } else {
+                    clientes.forEach(c => {
+                        const estado = c.estado || "ACTIVO";
+                        const isActivo = estado === "ACTIVO";
+                        html += `
+                        <tr class="text-center">
+                            <td>${c.id}</td>
+                            <td>${c.nombre}</td>
+                            <td>${c.apellido}</td>
+                            <td class="d-none d-sm-table-cell">${c.direccion ?? '-'}</td>
+                            <td class="d-none d-sm-table-cell">${c.telefono ?? '-'}</td>
+                            <td>
+                                <span class="badge ${isActivo ? 'bg-success' : 'bg-danger'}">${estado}</span>
+                            </td>
+                            <td>
+                                <form method="post" action="/clientes/cambiar-estado/${c.id}">
+                                    <button type="submit" class="btn btn-warning btn-sm">
+                                        <i class="bi ${isActivo ? 'bi-toggle-on' : 'bi-toggle-off'}"></i>
+                                        ${isActivo ? 'Desactivar' : 'Activar'}
+                                    </button>
+                                </form>
+                            </td>
+                            <td>
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                    <a href="/clientes/editar/${c.id}" class="btn btn-secondary btn-sm"><i class="bi bi-pencil-square"></i></a>
+                                    <form action="/clientes/eliminar/${c.id}" method="post" onsubmit="return confirmarEliminar(this)">
+                                        <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>`;
+                    });
+                }
+
+                html += `</tbody></table>`;
+                document.getElementById("tablaClientesContainer").innerHTML = html;
+
+                if (data.pageable) {
+                    paginaActual = data.number;
+                    document.getElementById("btnAnterior").disabled = data.first;
+                    document.getElementById("btnSiguiente").disabled = data.last;
+                }
+
+                document.getElementById("loaderClientes").style.display = "none";
+                document.getElementById("tablaClientesContainer").style.display = "block";
+            })
+            .catch(err => {
+                console.error("Error al cargar clientes:", err);
+                document.getElementById("tablaClientesContainer").innerHTML =
+                    `<div class="alert alert-danger text-center">Error al cargar los clientes.</div>`;
+                document.getElementById("loaderClientes").style.display = "none";
+                document.getElementById("tablaClientesContainer").style.display = "block";
+            });
+    }
+
+    function confirmarEliminar(form) {
+        event.preventDefault();
         Swal.fire({
             title: "¿Eliminar cliente?",
             text: "Esta acción no se puede deshacer.",
@@ -182,28 +180,10 @@
                 form.submit();
             }
         });
-
         return false;
     }
-</script>
 
-<!-- SweetAlert: Mostrar mensaje de éxito o error -->
-<script th:inline="javascript" th:if="${success}">
-    Swal.fire({
-        icon: 'success',
-        title: 'Éxito',
-        text: [[${success}]],
-        confirmButtonColor: '#3085d6'
-    });
-</script>
-
-<script th:inline="javascript" th:if="${error}">
-    Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: [[${error}]],
-        confirmButtonColor: '#d33'
-    });
+    window.onload = () => cargarClientes(0);
 </script>
 
 </body>

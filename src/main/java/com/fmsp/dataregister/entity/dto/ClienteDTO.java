@@ -8,18 +8,13 @@ public class ClienteDTO {
     private String telefono;
     private String estado;
 
-    public ClienteDTO(Long id, String nombre, String apellido, String direccion, String telefono) {
+    public ClienteDTO(Long id, String nombre, String apellido, String direccion, String telefono,  String estado) {
         this.id = id;
         this.nombre = nombre;
         this.apellido = apellido;
         this.direccion = direccion;
         this.telefono = telefono;
-    }
-
-    public ClienteDTO() {
-    }
-
-    public ClienteDTO(Long id, String nombre, String apellido, String direccion, String telefono, String estado) {
+        this.estado = estado;
     }
 
     public String getEstado() {

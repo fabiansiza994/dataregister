@@ -4,6 +4,7 @@ import com.fmsp.dataregister.entity.Cliente;
 import com.fmsp.dataregister.entity.Empresa;
 import com.fmsp.dataregister.entity.Grupo;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -24,4 +25,6 @@ public interface ClienteRepository extends JpaRepository<Cliente, Integer> {
     Page<Cliente> findByEmpresa(Empresa empresa, Pageable pageable);
     Page<Cliente> findByEmpresaAndEstado(Empresa empresa, String estado, Pageable pageable);
     List<Cliente> findByNombreContainingIgnoreCaseAndEmpresa(String nombre, Empresa empresaActual);
+    Page<Cliente> findByUsuario_Grupo(Grupo grupo, Pageable pageable);
+
 }
