@@ -16,19 +16,21 @@ public class Trabajo {
     private BigDecimal valorMateriales;
     private BigDecimal valorTotal;
     private BigDecimal ganancias;
+
+    @Column(length = 500)
     private String descripcionLabor;
 
     // Guardar imágenes en Base64
-    @Column(length = 500)
+    @Column(length = 1000)
     private String foto1;
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String foto2;
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String foto3;
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String foto4;
 
     @ManyToOne

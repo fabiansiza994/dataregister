@@ -3,6 +3,7 @@ package com.fmsp.dataregister.service.impl;
 import com.fmsp.dataregister.entity.Empresa;
 import com.fmsp.dataregister.entity.Grupo;
 import com.fmsp.dataregister.entity.Usuario;
+import com.fmsp.dataregister.entity.dto.UsuarioSesionDTO;
 import com.fmsp.dataregister.repository.GrupoRepository;
 import com.fmsp.dataregister.repository.UsuarioRepository;
 import com.fmsp.dataregister.service.IGrupoService;
@@ -30,7 +31,8 @@ public class GrupoService implements IGrupoService {
             return "redirect:/";
         }
 
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuarioDto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+        Usuario usuario = usuarioRepository.findById(usuarioDto.getId()).orElseThrow();
 
         if (usuario == null || usuario.getGrupo() == null || usuario.getGrupo().getEmpresa() == null) {
             return "redirect:/grupos?error=Debe pertenecer a una empresa";
@@ -58,8 +60,8 @@ public class GrupoService implements IGrupoService {
             return "redirect:/";
         }
 
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
-
+        UsuarioSesionDTO usuarioDto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+        Usuario usuario = usuarioRepository.findById(usuarioDto.getId()).orElseThrow();
         if (usuario == null || usuario.getGrupo() == null || usuario.getGrupo().getEmpresa() == null) {
             return "redirect:/grupos?error=Debe pertenecer a una empresa";
         }
@@ -77,7 +79,8 @@ public class GrupoService implements IGrupoService {
             return "redirect:/";
         }
 
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuarioDto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+        Usuario usuario = usuarioRepository.findById(usuarioDto.getId()).orElseThrow();
 
         if (usuario == null || usuario.getGrupo() == null || usuario.getGrupo().getEmpresa() == null) {
             return "redirect:/grupos?error=Debe pertenecer a una empresa";

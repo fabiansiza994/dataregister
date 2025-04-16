@@ -2,7 +2,9 @@ package com.fmsp.dataregister.controller;
 
 import com.fmsp.dataregister.entity.Soporte;
 import com.fmsp.dataregister.entity.Usuario;
+import com.fmsp.dataregister.entity.dto.UsuarioSesionDTO;
 import com.fmsp.dataregister.repository.SoporteRepository;
+import com.fmsp.dataregister.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -18,15 +19,20 @@ import java.util.List;
 public class SoporteController {
 
     private final SoporteRepository soporteRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    public SoporteController(SoporteRepository soporteRepository) {
+    public SoporteController(SoporteRepository soporteRepository, UsuarioRepository usuarioRepository) {
         this.soporteRepository = soporteRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @GetMapping
     public String mostrarFormulario(Model model, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
-        if (usuario == null) return "redirect:/login";
+        UsuarioSesionDTO usuarioDto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+
+        if (usuarioDto == null) return "redirect:/login";
+
+        Usuario usuario = usuarioRepository.findById(usuarioDto.getId()).orElseThrow();
 
         if ("ADMIN".equals(usuario.getRol().getNombre())) {
             // Admin ve los mensajes de su empresa
@@ -47,8 +53,8 @@ public class SoporteController {
 
     @PostMapping("/enviar")
     public String enviarFormulario(@ModelAttribute Soporte soporte, HttpSession session, RedirectAttributes redirect) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
-        if (usuario == null) return "redirect:/login";
+        UsuarioSesionDTO usuarioDto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+        if (usuarioDto == null) return "redirect:/login";
 
         LocalDateTime ahora = LocalDateTime.now();
         LocalDateTime ultima = (LocalDateTime) session.getAttribute("ultimaSolicitudSoporte");
@@ -57,6 +63,8 @@ public class SoporteController {
             redirect.addFlashAttribute("error", "Por favor espera unos segundos antes de enviar otro mensaje.");
             return "redirect:/soporte";
         }
+
+        Usuario usuario = usuarioRepository.findById(usuarioDto.getId()).orElseThrow();
 
         soporte.setFecha(LocalDateTime.now());
         soporte.setUsuario(usuario);
@@ -69,9 +77,10 @@ public class SoporteController {
 
     @PostMapping("/eliminar")
     public String eliminarMensaje(Long id, HttpSession session, RedirectAttributes redirect) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
-        if (usuario == null) return "redirect:/login";
+        UsuarioSesionDTO usuarioDto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+        if (usuarioDto == null) return "redirect:/login";
 
+        Usuario usuario = usuarioRepository.findById(usuarioDto.getId()).orElseThrow();
         soporteRepository.findById(id).ifPresent(mensaje -> {
             if (mensaje.getUsuario().getId().equals(usuario.getId())) {
                 soporteRepository.delete(mensaje);
@@ -97,13 +106,15 @@ public class SoporteController {
 
     @GetMapping("/detalle/{id}")
     public String verDetalle(@PathVariable Long id, Model model, HttpSession session) {
-        Usuario admin = (Usuario) session.getAttribute("usuarioLogueado");
-        if (admin == null || !"ADMIN".equals(admin.getRol().getNombre())) {
+        UsuarioSesionDTO usuarioDto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+
+        Usuario usuario = usuarioRepository.findById(usuarioDto.getId()).orElseThrow();
+        if (usuario == null || !"ADMIN".equals(usuario.getRol().getNombre())) {
             return "redirect:/login";
         }
 
         Soporte soporte = soporteRepository.findById(id).orElse(null);
-        if (soporte == null || !soporte.getUsuario().getGrupo().getEmpresa().getId().equals(admin.getGrupo().getEmpresa().getId())) {
+        if (soporte == null || !soporte.getUsuario().getGrupo().getEmpresa().getId().equals(usuario.getGrupo().getEmpresa().getId())) {
             return "redirect:/soporte/admin?error=Mensaje no encontrado o no autorizado.";
         }
 

@@ -19,6 +19,9 @@ public class ClienteDTO {
     public ClienteDTO() {
     }
 
+    public ClienteDTO(Long id, String nombre, String apellido, String direccion, String telefono, String estado) {
+    }
+
     public String getEstado() {
         return estado;
     }

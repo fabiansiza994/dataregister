@@ -3,6 +3,7 @@ package com.fmsp.dataregister.controller;
 import com.fmsp.dataregister.entity.Rol;
 import com.fmsp.dataregister.entity.Usuario;
 import com.fmsp.dataregister.entity.dto.RegistroDTO;
+import com.fmsp.dataregister.entity.dto.UsuarioSesionDTO;
 import com.fmsp.dataregister.repository.RolRepository;
 import com.fmsp.dataregister.service.IAuthService;
 import jakarta.servlet.http.HttpSession;
@@ -50,13 +51,6 @@ public class AuthController {
     @GetMapping("/")
     public String mostrarHome(HttpSession session, Model model) {
         return iAuthService.mostrarHome(session, model);
-    }
-
-    /**
-     * Redirige al usuario según su rol.
-     */
-    private String redireccionarSegunRol(Usuario usuario) {
-        return iAuthService.redireccionarSegunRol(usuario);
     }
 
     @GetMapping("/perfil")
@@ -151,6 +145,11 @@ public class AuthController {
                                    @RequestParam String confirmarPassword,
                                    RedirectAttributes redirect) {
         return iAuthService.resetearPassword(id, nuevaPassword, confirmarPassword, redirect);
+    }
+
+    @GetMapping("/descargar")
+    public String mostrarDescarga() {
+        return "landing";
     }
 
 }

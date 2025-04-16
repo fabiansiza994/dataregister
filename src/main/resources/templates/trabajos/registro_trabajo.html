@@ -116,7 +116,7 @@
             </div>
 
             <!-- Botón de Envío -->
-            <button type="submit" class="btn btn-primary w-100">Registrar Trabajo</button>
+            <button type="submit" class="btn btn-primary w-100" id="btnRegistrarTrabajo">Registrar Trabajo</button>
         </form>
     </div>
 </main>
@@ -280,6 +280,21 @@
                 .catch(error => console.error("Error al buscar clientes:", error));
         }
     }
+
+    const form = document.querySelector("form");
+    const btn = document.getElementById("btnRegistrarTrabajo");
+
+    form.addEventListener("submit", function (event) {
+        // Verifica si el formulario es válido
+        if (form.checkValidity()) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Registrando...';
+        } else {
+            // Deja que el navegador muestre los errores
+            event.preventDefault();
+            form.classList.add('was-validated'); // útil si quieres usar estilos Bootstrap
+        }
+    });
 </script>
 
 </body>

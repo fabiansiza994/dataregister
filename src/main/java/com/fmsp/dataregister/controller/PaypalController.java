@@ -5,9 +5,11 @@ import com.fmsp.dataregister.entity.Empresa;
 import com.fmsp.dataregister.entity.Pago;
 import com.fmsp.dataregister.entity.Plan;
 import com.fmsp.dataregister.entity.Usuario;
+import com.fmsp.dataregister.entity.dto.UsuarioSesionDTO;
 import com.fmsp.dataregister.repository.EmpresaRepository;
 import com.fmsp.dataregister.repository.PagoRepository;
 import com.fmsp.dataregister.repository.PlanRepository;
+import com.fmsp.dataregister.repository.UsuarioRepository;
 import com.fmsp.dataregister.util.LoadDataConfig;
 import com.paypal.api.payments.Links;
 import com.paypal.api.payments.Payment;
@@ -29,13 +31,15 @@ public class PaypalController {
     private final PaypalService paypalService;
     private final PlanRepository planRepository;
     private final EmpresaRepository empresaRepository;
+    private final UsuarioRepository usuarioRepository;
     private final PagoRepository pagoRepository;
     private final LoadDataConfig loadDataConfig;
 
-    public PaypalController(PaypalService paypalService, PlanRepository planRepository, EmpresaRepository empresaRepository, PagoRepository pagoRepository, LoadDataConfig loadDataConfig) {
+    public PaypalController(PaypalService paypalService, PlanRepository planRepository, EmpresaRepository empresaRepository, UsuarioRepository usuarioRepository, PagoRepository pagoRepository, LoadDataConfig loadDataConfig) {
         this.paypalService = paypalService;
         this.planRepository = planRepository;
         this.empresaRepository = empresaRepository;
+        this.usuarioRepository = usuarioRepository;
         this.pagoRepository = pagoRepository;
         this.loadDataConfig = loadDataConfig;
     }
@@ -73,7 +77,9 @@ public class PaypalController {
 
             if (payment.getState().equalsIgnoreCase("approved")) {
                 // Obtener el usuario logueado
-                Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+                UsuarioSesionDTO usuarioDto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+
+                Usuario usuario = usuarioRepository.findById(usuarioDto.getId()).orElseThrow();
                 if (usuario != null && usuario.getGrupo() != null && usuario.getGrupo().getEmpresa() != null) {
                     Empresa empresa = usuario.getGrupo().getEmpresa();
 

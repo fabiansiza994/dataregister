@@ -1,9 +1,15 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
+<style>
+  body {
+    padding-top: 70px; /* Altura de tu navbar */
+  }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
+<div class="container">
     <!-- Logo / nombre empresa -->
     <a class="navbar-brand" th:href="@{/}"
-       th:text="${session.usuarioLogueado != null and session.usuarioLogueado.grupo != null and session.usuarioLogueado.grupo.empresa != null
-                 ? session.usuarioLogueado.grupo.empresa.nombre : 'Mi Aplicación'}">
+       th:text="${usuario != null and usuario.grupo != null and usuario.grupo.empresa != null
+                 ? usuario.grupo.empresa.nombre : 'Mi Aplicación'}">
       Mi Aplicación
     </a>
 
@@ -15,7 +21,7 @@
 
     <!-- Enlaces -->
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav ms-auto" th:if="${usuario != null}">
         <!-- Enlaces principales -->
         <li class="nav-item">
           <a class="nav-link" th:href="@{/}"><i class="bi bi-house"></i> Inicio</a>
@@ -35,16 +41,15 @@
 
         <!-- Solo para ADMIN -->
         <li class="nav-item"
-            th:if="${session.usuarioLogueado != null and session.usuarioLogueado.rol.nombre == 'ADMIN'}">
+            th:if="${usuario.rol.nombre == 'ADMIN'}">
           <a class="nav-link" th:href="@{/metodos-pago}"><i class="bi bi-credit-card"></i> Métodos de Pago</a>
         </li>
         <li class="nav-item"
-            th:if="${session.usuarioLogueado != null and session.usuarioLogueado.rol.nombre == 'ADMIN'}">
+            th:if="${usuario.rol.nombre == 'ADMIN'}">
           <a class="nav-link" th:href="@{/grupos}"><i class="bi bi-people-fill"></i> Grupos</a>
         </li>
-        <!-- Crear un dropdown de Usuarios solo si es ADMIN -->
         <li class="nav-item dropdown"
-            th:if="${session.usuarioLogueado != null and session.usuarioLogueado.rol.nombre == 'ADMIN'}">
+            th:if="${usuario.rol.nombre == 'ADMIN'}">
           <a class="nav-link dropdown-toggle" href="#" id="usuariosDropdown" role="button" data-bs-toggle="dropdown"
              aria-expanded="false">
             <i class="bi bi-people"></i> Usuarios
@@ -73,7 +78,7 @@
           <a class="nav-link dropdown-toggle d-flex align-items-center text-white"
              href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-person-circle me-2"></i>
-            <span th:text="${session.usuarioLogueado.usuario}">Usuario</span>
+            <span th:text="${usuario.usuario}">Usuario</span>
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
             <li>

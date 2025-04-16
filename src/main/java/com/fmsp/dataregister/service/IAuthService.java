@@ -2,6 +2,7 @@ package com.fmsp.dataregister.service;
 
 import com.fmsp.dataregister.entity.Usuario;
 import com.fmsp.dataregister.entity.dto.RegistroDTO;
+import com.fmsp.dataregister.entity.dto.UsuarioSesionDTO;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -15,7 +16,7 @@ public interface IAuthService {
                          HttpSession session);
     String cerrarSesion(HttpSession session);
     String mostrarHome(HttpSession session, Model model);
-    String redireccionarSegunRol(Usuario usuario);
+    String redireccionarSegunRol(UsuarioSesionDTO usuario);
 
     String mostrarPerfil(HttpSession session, Model model);
     String editarPerfil(HttpSession session, Model model);

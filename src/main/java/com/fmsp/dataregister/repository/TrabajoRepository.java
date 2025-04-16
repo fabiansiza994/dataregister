@@ -4,6 +4,8 @@ import com.fmsp.dataregister.entity.Empresa;
 import com.fmsp.dataregister.entity.Grupo;
 import com.fmsp.dataregister.entity.Trabajo;
 import com.fmsp.dataregister.entity.Usuario;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,7 +19,7 @@ import java.util.Optional;
 @Repository
 public interface TrabajoRepository extends JpaRepository<Trabajo, Integer> {
     Optional<Trabajo> findById(Long id);
-    boolean existsByClienteId(Integer id);
+    boolean existsByClienteId(Long id);
 
     boolean existsByFormaPagoId(Long id);
 
@@ -47,5 +49,12 @@ public interface TrabajoRepository extends JpaRepository<Trabajo, Integer> {
     List<Trabajo> findByUsuario_Grupo_EmpresaAndFechaBetween(Empresa empresa, LocalDate fechaInicio, LocalDate fechaFin);
 
     List<Trabajo> findByUsuarioAndFechaBetween(Usuario usuario, LocalDate fechaInicio, LocalDate fechaFin);
+
+    List<Trabajo> findByCliente_NombreContainingIgnoreCase(String cliente);
+
+    Page<Trabajo> findByUsuario_Grupo_Empresa(Empresa empresa, Pageable pageable);
+    Page<Trabajo> findByUsuario_Grupo(Grupo grupo, Pageable pageable);
+    Page<Trabajo> findByCliente_NombreContainingIgnoreCaseAndUsuario_Grupo_Empresa(String nombre, Empresa empresa, Pageable pageable);
+    Page<Trabajo> findByCliente_NombreContainingIgnoreCaseAndUsuario_Grupo(String nombre, Grupo grupo, Pageable pageable);
 
 }

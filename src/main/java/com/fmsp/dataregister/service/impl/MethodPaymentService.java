@@ -3,8 +3,10 @@ package com.fmsp.dataregister.service.impl;
 import com.fmsp.dataregister.entity.Empresa;
 import com.fmsp.dataregister.entity.FormaPago;
 import com.fmsp.dataregister.entity.Usuario;
+import com.fmsp.dataregister.entity.dto.UsuarioSesionDTO;
 import com.fmsp.dataregister.repository.FormaPagoRepository;
 import com.fmsp.dataregister.repository.TrabajoRepository;
+import com.fmsp.dataregister.repository.UsuarioRepository;
 import com.fmsp.dataregister.service.IMethodPaymentService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Service;
@@ -18,15 +20,19 @@ public class MethodPaymentService implements IMethodPaymentService {
 
     private final FormaPagoRepository formaPagoRepository;
     private final TrabajoRepository trabajoRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    public MethodPaymentService(FormaPagoRepository formaPagoRepository, TrabajoRepository trabajoRepository) {
+    public MethodPaymentService(FormaPagoRepository formaPagoRepository, TrabajoRepository trabajoRepository, UsuarioRepository usuarioRepository) {
         this.formaPagoRepository = formaPagoRepository;
         this.trabajoRepository = trabajoRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Override
     public String listarMetodosPago(Model model, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuarioDto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+
+        Usuario usuario = usuarioRepository.findById(usuarioDto.getId()).orElseThrow();
         if (usuario == null || usuario.getRol().getNombre().equals("USER")) {
             return "redirect:auth/login";
         }
@@ -46,7 +52,9 @@ public class MethodPaymentService implements IMethodPaymentService {
 
     @Override
     public String guardarMetodoPago(String formaPagoNombre, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuarioDto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+
+        Usuario usuario = usuarioRepository.findById(usuarioDto.getId()).orElseThrow();
         if (usuario == null || usuario.getRol().getNombre().equals("USER")) {
             return "redirect:auth/login";
         }

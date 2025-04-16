@@ -4,8 +4,10 @@ import com.fmsp.dataregister.entity.Cliente;
 import com.fmsp.dataregister.entity.Empresa;
 import com.fmsp.dataregister.entity.Usuario;
 import com.fmsp.dataregister.entity.dto.ClienteDTO;
+import com.fmsp.dataregister.entity.dto.UsuarioSesionDTO;
 import com.fmsp.dataregister.repository.ClienteRepository;
 import com.fmsp.dataregister.repository.TrabajoRepository;
+import com.fmsp.dataregister.repository.UsuarioRepository;
 import com.fmsp.dataregister.service.IClientService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -24,30 +26,35 @@ public class ClientService implements IClientService {
 
     private final ClienteRepository clienteRepository;
     private final TrabajoRepository trabajoRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    public ClientService(ClienteRepository clienteRepository, TrabajoRepository trabajoRepository) {
+    public ClientService(ClienteRepository clienteRepository, TrabajoRepository trabajoRepository, UsuarioRepository usuarioRepository) {
         this.clienteRepository = clienteRepository;
         this.trabajoRepository = trabajoRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Override
     public String listarClientes(Model model, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuario = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+
         if (usuario == null) {
-            return "redirect:auth/login";  // Redirigir si no está autenticado
+            return "redirect:auth/login";
         }
 
+        Usuario user = usuarioRepository.findById(usuario.getId()).orElseThrow();
+
         List<Cliente> clientes;
-        Empresa empresaActual = usuario.getGrupo().getEmpresa();
+        Empresa empresaActual = user.getGrupo().getEmpresa();
 
         if ("INACTIVO".equals(empresaActual.getEstado())) {
             return "payments/index";
         }
 
-        if (usuario.getRol().getNombre().equals("ADMIN")) {
+        if (user.getRol().getNombre().equals("ADMIN")) {
             clientes = clienteRepository.findByEmpresa(empresaActual);  // ADMIN ve solo los clientes de su empresa
         } else {
-            clientes = clienteRepository.findByGrupo(usuario.getGrupo()); // Usuario normal solo ve los de su grupo
+            clientes = clienteRepository.findByGrupo(user.getGrupo()); // Usuario normal solo ve los de su grupo
         }
 
         model.addAttribute("clientes", clientes);
@@ -56,11 +63,14 @@ public class ClientService implements IClientService {
 
     @Override
     public String mostrarFormularioRegistro(Model model, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuario = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
         if (usuario == null) {
             return "redirect:auth/login";  // Redirigir si no está autenticado
         }
-        Empresa empresaActual = usuario.getGrupo().getEmpresa();
+
+        Usuario user = usuarioRepository.findById(usuario.getId()).orElseThrow();
+
+        Empresa empresaActual = user.getGrupo().getEmpresa();
 
         if ("INACTIVO".equals(empresaActual.getEstado())) {
             return "payments/index";
@@ -72,16 +82,18 @@ public class ClientService implements IClientService {
 
     @Override
     public String guardarCliente(Cliente cliente, HttpSession session, RedirectAttributes redirectAttributes) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuario = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
 
         if (usuario == null) {
             return "redirect:auth/login";
         }
 
-        cliente.setUsuario(usuario);
+        Usuario user = usuarioRepository.findById(usuario.getId()).orElseThrow();
 
-        if (usuario.getGrupo() != null && usuario.getGrupo().getEmpresa() != null) {
-            cliente.setEmpresa(usuario.getGrupo().getEmpresa());
+        cliente.setUsuario(user);
+
+        if (user.getGrupo() != null && user.getGrupo().getEmpresa() != null) {
+            cliente.setEmpresa(user.getGrupo().getEmpresa());
         } else {
             return "redirect:/clientes?error=Debe pertenecer a una empresa para registrar clientes";
         }
@@ -93,7 +105,7 @@ public class ClientService implements IClientService {
 
     @Override
     public String eliminarCliente(Integer id, RedirectAttributes redirectAttributes, HttpServletResponse response) {
-        if (trabajoRepository.existsByClienteId(id)) {
+        if (trabajoRepository.existsByClienteId(Long.valueOf(id))) {
             redirectAttributes.addFlashAttribute("error", "No se puede eliminar el cliente porque tiene trabajos asociados.");
             return "redirect:/clientes";
         }
@@ -106,12 +118,14 @@ public class ClientService implements IClientService {
 
     @Override
     public String buscarClientes(String nombre, Model model, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuario = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
         if (usuario == null) {
             return "redirect:auth/login";
         }
 
-        Empresa empresaActual = usuario.getGrupo().getEmpresa(); // Obtener la empresa del usuario
+        Usuario user = usuarioRepository.findById(usuario.getId()).orElseThrow();
+
+        Empresa empresaActual = user.getGrupo().getEmpresa(); // Obtener la empresa del usuario
         List<Cliente> clientes;
 
         if (nombre == null || nombre.trim().isEmpty()) {
@@ -127,15 +141,17 @@ public class ClientService implements IClientService {
 
     @Override
     public ClienteDTO guardarClienteAjax(Cliente cliente, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuario = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
 
         if (usuario == null) {
             throw new RuntimeException("Usuario no autenticado");
         }
 
-        Empresa empresaActual = usuario.getGrupo().getEmpresa();
+        Usuario user = usuarioRepository.findById(usuario.getId()).orElseThrow();
 
-        cliente.setUsuario(usuario);
+        Empresa empresaActual = user.getGrupo().getEmpresa();
+
+        cliente.setUsuario(user);
         cliente.setEmpresa(empresaActual);
 
         Cliente nuevoCliente = clienteRepository.save(cliente);
@@ -145,12 +161,14 @@ public class ClientService implements IClientService {
 
     @Override
     public Page<ClienteDTO> listarClientesAjax(int page, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuario = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
         if (usuario == null) {
             throw new RuntimeException("Usuario no autenticado");
         }
 
-        Empresa empresaActual = usuario.getGrupo().getEmpresa();
+        Usuario user = usuarioRepository.findById(usuario.getId()).orElseThrow();
+
+        Empresa empresaActual = user.getGrupo().getEmpresa();
         Page<Cliente> clientesPage = clienteRepository.findByEmpresaAndEstado(empresaActual, "ACTIVO", PageRequest.of(page, 10));
 
         List<ClienteDTO> clientesDTO = clientesPage.getContent().stream()
@@ -162,12 +180,13 @@ public class ClientService implements IClientService {
 
     @Override
     public List<ClienteDTO> buscarClientesAjax(String nombre, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuario = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
         if (usuario == null) {
             throw new RuntimeException("Usuario no autenticado");
         }
 
-        Empresa empresaActual = usuario.getGrupo().getEmpresa();
+        Usuario user = usuarioRepository.findById(usuario.getId()).orElseThrow();
+        Empresa empresaActual = user.getGrupo().getEmpresa();
         List<Cliente> clientes = clienteRepository.findByNombreContainingIgnoreCaseAndEmpresa(nombre, empresaActual);
 
         return clientes.stream()
@@ -189,7 +208,7 @@ public class ClientService implements IClientService {
 
     @Override
     public String actualizarCliente(Cliente cliente, HttpSession session, RedirectAttributes redirectAttributes) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuario = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
         if (usuario == null) {
             return "redirect:auth/login";
         }

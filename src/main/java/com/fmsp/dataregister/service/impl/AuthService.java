@@ -2,6 +2,7 @@ package com.fmsp.dataregister.service.impl;
 
 import com.fmsp.dataregister.entity.*;
 import com.fmsp.dataregister.entity.dto.RegistroDTO;
+import com.fmsp.dataregister.entity.dto.UsuarioSesionDTO;
 import com.fmsp.dataregister.repository.GrupoRepository;
 import com.fmsp.dataregister.repository.PlanRepository;
 import com.fmsp.dataregister.repository.RolRepository;
@@ -36,7 +37,7 @@ public class AuthService implements IAuthService {
 
     @Override
     public String mostrarLogin(HttpSession session) {
-        Usuario usuarioLogueado = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuarioLogueado = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
         if (usuarioLogueado != null) {
             return redireccionarSegunRol(usuarioLogueado);
         }
@@ -58,10 +59,17 @@ public class AuthService implements IAuthService {
 
             // Verificar contraseña
             if (passwordEncoder.matches(password, user.getPassword())) {
-                user.setIntentosFallidos(0); // ✅ reinicia los intentos
+                user.setIntentosFallidos(0);
                 usuarioRepository.save(user);
 
-                session.setAttribute("usuarioLogueado", user);
+                UsuarioSesionDTO dto = new UsuarioSesionDTO(
+                        user.getId(),
+                        user.getUsuario(),
+                        user.getRol().getNombre(),
+                        user.getGrupo().getEmpresa().getId(),
+                        user.getGrupo().getId()
+                );
+                session.setAttribute("usuarioLogueado", dto);
 
                 if (user.getGrupo() == null) {
                     return "redirect:/grupos/nuevo?msg=Debe crear o unirse a un grupo";
@@ -75,7 +83,7 @@ public class AuthService implements IAuthService {
                     model.addAttribute("alertaPago", "Por favor, realice el pago de la suscripción.");
                 }
 
-                return "home";
+                return "redirect:/";
 
             } else {
                 // Contraseña incorrecta → incrementar intentos
@@ -108,12 +116,12 @@ public class AuthService implements IAuthService {
 
     @Override
     public String mostrarHome(HttpSession session, Model model) {
-        Usuario usuarioLogueado = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuarioLogueado = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
         if (usuarioLogueado == null) {
             return "redirect:auth/login";
         }
-
-        Empresa empresa = usuarioLogueado.getGrupo().getEmpresa();
+        Usuario usuario = usuarioRepository.findById(usuarioLogueado.getId()).orElseThrow();
+        Empresa empresa = usuario.getGrupo().getEmpresa();
 
         if ("PENDIENTE".equals(empresa.getEstado())) {
             model.addAttribute("alertaPago", "Por favor, realice el pago de la suscripción.");
@@ -126,22 +134,20 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public String redireccionarSegunRol(Usuario usuario) {
-        if ("ADMIN".equals(usuario.getRol().getNombre())) {
-            return "home";
-        } else {
-            return "home";
-        }
+    public String redireccionarSegunRol(UsuarioSesionDTO usuario) {
+        return "home";
     }
 
     @Override
     public String mostrarPerfil(HttpSession session, Model model) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuario = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
         if (usuario == null) {
             return "redirect:auth/login";
         }
 
-        Empresa empresa = usuario.getGrupo().getEmpresa();
+        Usuario user = usuarioRepository.findById(usuario.getId()).orElseThrow();
+
+        Empresa empresa = user.getGrupo().getEmpresa();
         Plan plan = planRepository.findTopByEmpresaOrderByFechaVigenciaDesc(empresa);
         boolean proximoAVencer = plan.getFechaVigencia().isBefore(LocalDate.now().plusDays(10));
 
@@ -153,18 +159,22 @@ public class AuthService implements IAuthService {
 
     @Override
     public String editarPerfil(HttpSession session, Model model) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+        UsuarioSesionDTO usuario = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+
         if (usuario == null) return "redirect:/login";
 
-        model.addAttribute("usuario", usuario);
+        Usuario user = usuarioRepository.findById(usuario.getId()).orElseThrow();
+
+        model.addAttribute("usuario", user);
         return "auth/editar-perfil";
     }
 
     @Override
     public String actualizarPerfil(Usuario datos, HttpSession session, RedirectAttributes redirect) {
-        Usuario actual = (Usuario) session.getAttribute("usuarioLogueado");
-        if (actual == null) return "redirect:/login";
+        UsuarioSesionDTO dto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+        if (dto == null) return "redirect:/login";
 
+        Usuario actual = usuarioRepository.findById(dto.getId()).orElseThrow();
         Optional<Usuario> existente = usuarioRepository.findByEmail(datos.getEmail());
         if (existente.isPresent() && !existente.get().getId().equals(actual.getId())) {
             redirect.addFlashAttribute("errorCorreo", "Este correo ya está en uso por otro usuario.");
@@ -176,7 +186,14 @@ public class AuthService implements IAuthService {
         actual.setEmail(datos.getEmail());
 
         usuarioRepository.save(actual);
-        session.setAttribute("usuarioLogueado", actual);
+        UsuarioSesionDTO dtosession = new UsuarioSesionDTO(
+                actual.getId(),
+                actual.getUsuario(),
+                actual.getRol().getNombre(),
+                actual.getGrupo().getEmpresa().getId(),
+                actual.getGrupo().getId()
+        );
+        session.setAttribute("usuarioLogueado", dtosession);
 
         return "redirect:/perfil?success";
     }
@@ -215,8 +232,11 @@ public class AuthService implements IAuthService {
 
     @Override
     public String mostrarFormularioRegistro(HttpSession session, Model model) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
-        Empresa empresaActual = usuario.getGrupo().getEmpresa();
+        UsuarioSesionDTO usuario = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+
+        Usuario user = usuarioRepository.findById(usuario.getId()).orElseThrow();
+
+        Empresa empresaActual = user.getGrupo().getEmpresa();
 
         model.addAttribute("usuario", new Usuario());
         model.addAttribute("grupos", obtenerTodosLosGrupos(empresaActual));
@@ -230,11 +250,12 @@ public class AuthService implements IAuthService {
 
     @Override
     public String listarUsuariosBloqueados(HttpSession session, Model model) {
-        Usuario logueado = (Usuario) session.getAttribute("usuarioLogueado");
-        if (logueado == null) {
+        UsuarioSesionDTO dto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+        if (dto == null) {
             return "redirect:/login";
         }
 
+        Usuario logueado = usuarioRepository.findById(dto.getId()).orElseThrow();
         Long empresaId = logueado.getGrupo().getEmpresa().getId();
 
         List<Usuario> bloqueados = usuarioRepository.findByBloqueadoTrueAndGrupo_Empresa_Id(empresaId);
@@ -260,11 +281,12 @@ public class AuthService implements IAuthService {
 
     @Override
     public String listarUsuarios(HttpSession session, Model model) {
-        Usuario logueado = (Usuario) session.getAttribute("usuarioLogueado");
-        if (logueado == null) {
+        UsuarioSesionDTO dto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+        if (dto == null) {
             return "redirect:/login";
         }
 
+        Usuario logueado = usuarioRepository.findById(dto.getId()).orElseThrow();
         Long empresaId = logueado.getGrupo().getEmpresa().getId();
         List<Usuario> usuarios = usuarioRepository.findByGrupo_Empresa_Id(empresaId);
 
@@ -274,11 +296,12 @@ public class AuthService implements IAuthService {
 
     @Override
     public String buscarUsuarios(String filtro, HttpSession session, Model model) {
-        Usuario logueado = (Usuario) session.getAttribute("usuarioLogueado");
-        if (logueado == null) {
+        UsuarioSesionDTO dto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+        if (dto == null) {
             return "redirect:/login";
         }
 
+        Usuario logueado = usuarioRepository.findById(dto.getId()).orElseThrow();
         Long empresaId = logueado.getGrupo().getEmpresa().getId();
         List<Usuario> usuarios = usuarioRepository.buscarPorNombreOUsuario(empresaId, filtro);
 
@@ -290,8 +313,10 @@ public class AuthService implements IAuthService {
 
     @Override
     public String mostrarFormularioEdicion(Long id, HttpSession session, Model model) {
-        Usuario logueado = (Usuario) session.getAttribute("usuarioLogueado");
-        if (logueado == null) return "redirect:/login";
+        UsuarioSesionDTO dto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+        if (dto == null) return "redirect:/login";
+
+        Usuario logueado = usuarioRepository.findById(dto.getId()).orElseThrow();
 
         Usuario usuario = usuarioRepository.findById(id)
                 .filter(u -> u.getGrupo().getEmpresa().getId().equals(logueado.getGrupo().getEmpresa().getId()))
@@ -305,7 +330,6 @@ public class AuthService implements IAuthService {
 
         return "auth/editar-usuario";
     }
-
 
     @Override
     public String actualizarUsuario(RegistroDTO datos, RedirectAttributes redirect, HttpSession session) {
@@ -328,9 +352,10 @@ public class AuthService implements IAuthService {
 
     @Override
     public String mostrarResetPassword(Long id, Model model, HttpSession session) {
-        Usuario logueado = (Usuario) session.getAttribute("usuarioLogueado");
-        if (logueado == null) return "redirect:/login";
+        UsuarioSesionDTO dto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
+        if (dto == null) return "redirect:/login";
 
+        Usuario logueado = usuarioRepository.findById(dto.getId()).orElseThrow();
         Usuario usuario = usuarioRepository.findById(id)
                 .filter(u -> u.getGrupo().getEmpresa().getId().equals(logueado.getGrupo().getEmpresa().getId()))
                 .orElse(null);
