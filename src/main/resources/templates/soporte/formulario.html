@@ -1,85 +1,95 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+  <base href="https://dataregisterapp.com/" />
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Soporte</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container-custom {
+      max-width: 1100px;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
-<body style="background-color: #f8f9fa;">
+<body>
 
 <!-- Menú -->
 <div th:replace="~{fragments/menu.html}"></div>
 
 <main class="container mt-4">
-  <div class="row justify-content-center">
-    <div class="col-lg-10">
-      <div class="row">
-        <!-- Formulario -->
-        <div class="col-md-6 mb-4">
-          <div class="card shadow p-4">
-            <h4 class="mb-3 text-center">Formulario de Soporte</h4>
+  <div class="container-custom mx-auto">
+    <div class="row gx-4 gy-4">
+      <!-- Formulario -->
+      <div class="col-12 col-lg-6">
+        <div class="card shadow p-4 h-100">
+          <h4 class="mb-3 text-center">Formulario de Soporte</h4>
 
-            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+          <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+          <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-            <form th:action="@{/soporte/enviar}" method="post" th:object="${soporte}">
-              <div class="mb-3">
-                <label class="form-label">Asunto</label>
-                <input type="text" th:field="*{asunto}" class="form-control" required />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Estado</label>
-                <input type="text" th:value="${soporte.estado}" class="form-control" readonly />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Mensaje</label>
-                <textarea th:field="*{mensaje}" class="form-control" rows="4" required></textarea>
-              </div>
-              <button type="submit" class="btn btn-primary w-100">Enviar</button>
-            </form>
-          </div>
-        </div>
-
-        <!-- Lista de mensajes -->
-        <div class="col-md-6 mb-4">
-          <div class="card shadow p-4">
-            <h5 class="mb-3 text-center">Mis mensajes enviados</h5>
-
-            <div th:if="${mensajes != null and #lists.isEmpty(mensajes)}" class="alert alert-info">
-              Aún no has enviado ningún mensaje de soporte.
+          <form th:action="@{/soporte/enviar}" method="post" th:object="${soporte}">
+            <div class="mb-3">
+              <label class="form-label">Asunto</label>
+              <input type="text" th:field="*{asunto}" class="form-control" required />
             </div>
+            <div class="mb-3">
+              <label class="form-label">Estado</label>
+              <input type="text" th:value="${soporte.estado}" class="form-control" readonly />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Mensaje</label>
+              <textarea th:field="*{mensaje}" class="form-control" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Enviar</button>
+          </form>
+        </div>
+      </div>
 
-            <ul class="list-group" th:if="${mensajes != null and !#lists.isEmpty(mensajes)}">
-              <li class="list-group-item mb-2" th:each="msg : ${mensajes}">
-                <div class="fw-bold" th:text="${msg.asunto}">Asunto</div>
-                <div th:text="${msg.mensaje}">Mensaje</div>
-                <small class="text-muted d-block mb-1" th:text="${#temporals.format(msg.fecha, 'dd/MM/yyyy HH:mm')}"></small>
+      <!-- Lista de mensajes -->
+      <div class="col-12 col-lg-6">
+        <div class="card shadow p-4 h-100">
+          <h5 class="mb-3 text-center">Mis mensajes enviados</h5>
 
-                <!-- Estado -->
-                <span class="badge"
-                      th:classappend="${msg.estado == 'PENDIENTE' ? 'bg-warning text-dark' : (msg.estado == 'EN PROCESO' ? 'bg-info text-dark' : 'bg-success')}"
-                      th:text="${msg.estado}">Estado</span>
-
-                <!-- Botón eliminar -->
-                <form th:action="@{/soporte/eliminar}" method="post" th:object="${msg}" onsubmit="return confirmarEliminar(this)">
-                  <input type="hidden" name="id" th:value="${msg.id}" />
-                  <button type="submit" class="btn btn-sm btn-danger mt-2">
-                    <i class="bi bi-trash"></i> Eliminar
-                  </button>
-                </form>
-              </li>
-            </ul>
-
+          <div th:if="${mensajes != null and #lists.isEmpty(mensajes)}" class="alert alert-info">
+            Aún no has enviado ningún mensaje de soporte.
           </div>
+
+          <ul class="list-group" th:if="${mensajes != null and !#lists.isEmpty(mensajes)}">
+            <li class="list-group-item mb-2" th:each="msg : ${mensajes}">
+              <div class="fw-bold" th:text="${msg.asunto}">Asunto</div>
+              <div th:text="${msg.mensaje}">Mensaje</div>
+              <small class="text-muted d-block mb-1" th:text="${#temporals.format(msg.fecha, 'dd/MM/yyyy HH:mm')}"></small>
+
+              <span class="badge"
+                    th:classappend="${msg.estado == 'PENDIENTE' ? 'bg-warning text-dark' : (msg.estado == 'EN PROCESO' ? 'bg-info text-dark' : 'bg-success')}"
+                    th:text="${msg.estado}">Estado</span>
+
+              <form th:action="@{/soporte/eliminar}" method="post" th:object="${msg}" onsubmit="return confirmarEliminar(this)">
+                <input type="hidden" name="id" th:value="${msg.id}" />
+                <button type="submit" class="btn btn-sm btn-danger mt-2">
+                  <i class="bi bi-trash"></i> Eliminar
+                </button>
+              </form>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
   </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   function confirmarEliminar(form) {
     event.preventDefault();
@@ -101,5 +111,6 @@
   }
 </script>
 
+<script src="/js/resolver-rutas.js"></script>
 </body>
 </html>
