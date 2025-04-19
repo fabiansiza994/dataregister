@@ -105,9 +105,12 @@
                             html += `
                         <div class="card mb-3 shadow-sm">
                             <div class="card-body">
-                                <h5 class="card-title">Trabajo #${t.id}</h5>
+                                <!-- <h5 class="card-title">Trabajo #${t.id}</h5> -->
                                 <p class="mb-1"><strong>Fecha:</strong> ${t.fecha}</p>
-                                <p class="mb-1"><strong>Cliente:</strong> ${t.cliente}</p>
+                                <p class="mb-1">
+                                    <strong>Cliente:</strong>
+                                    <span style="color: darkviolet;font-style: oblique;font-weight: bold;"> ${t.cliente}</span>
+                                </p>
                                 <p class="mb-1"><strong>Valor Total:</strong> $${t.valorTotal ?? 0}</p>
                                 <p class="mb-3"><strong>Realizado por:</strong> ${t.usuario}</p>
                                 <div class="d-grid gap-2">
