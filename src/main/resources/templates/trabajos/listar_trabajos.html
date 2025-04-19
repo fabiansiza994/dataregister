@@ -40,6 +40,12 @@
             ¡Trabajo registrado con éxito!
         </div>
 
+        <!-- Mensaje de error -->
+        <div th:if="${error}" class="alert alert-danger text-center">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${error}"></span>
+        </div>
+
         <!-- Botón agregar -->
         <div class="mb-3 text-center">
             <a href="/trabajos/registro" class="btn btn-primary">

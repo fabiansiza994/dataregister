@@ -412,7 +412,8 @@ public class TrabajoController {
 
 
     @GetMapping("/editar/{id}")
-    public String mostrarFormularioEdicion(@PathVariable Integer id, Model model, HttpSession session) {
+    public String mostrarFormularioEdicion(@PathVariable Integer id, Model model, HttpSession session,
+                                           RedirectAttributes  redirectAttributes) {
         UsuarioSesionDTO usuarioDto = (UsuarioSesionDTO) session.getAttribute("usuarioLogueado");
         if (usuarioDto == null) return "redirect:/auth/login";
 
@@ -422,7 +423,8 @@ public class TrabajoController {
         Usuario usuario = usuarioRepository.findById(usuarioDto.getId()).orElseThrow();
         if (!usuario.getRol().getNombre().equals("ADMIN") &&
                 !trabajo.getUsuario().getId().equals(usuario.getId())) {
-            return "redirect:/trabajos/listar?error=No tienes permisos para editar este trabajo";
+            redirectAttributes.addFlashAttribute("error", "No tienes permisos para editar este trabajo.");
+            return "redirect:/trabajos/listar?error";
         }
 
         List<Cliente> clientes = usuario.getRol().getNombre().equals("ADMIN") ?
