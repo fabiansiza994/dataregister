@@ -1,20 +1,15 @@
 package com.fmsp.dataregister.controller;
 
-import com.fmsp.dataregister.entity.Rol;
 import com.fmsp.dataregister.entity.Usuario;
 import com.fmsp.dataregister.entity.dto.RegistroDTO;
-import com.fmsp.dataregister.entity.dto.UsuarioSesionDTO;
-import com.fmsp.dataregister.repository.RolRepository;
 import com.fmsp.dataregister.service.IAuthService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.beans.PropertyEditorSupport;
 import java.util.List;
 
 @Controller
@@ -22,12 +17,10 @@ public class AuthController {
 
     private final IAuthService iAuthService;
     private final PasswordEncoder passwordEncoder;
-    private final RolRepository rolRepository;
 
-    public AuthController(IAuthService iAuthService, PasswordEncoder passwordEncoder, RolRepository rolRepository) {
+    public AuthController(IAuthService iAuthService, PasswordEncoder passwordEncoder) {
         this.iAuthService = iAuthService;
         this.passwordEncoder = passwordEncoder;
-        this.rolRepository = rolRepository;
     }
 
     @GetMapping("/login")
